@@ -1,7 +1,8 @@
 from auto import *
 from bisect import bisect_right
-from func import pairs, aslist, Func, GetItem, I, redparts, unstar
+from parle import pairs, aslist, Func, GetItem, I, redparts, unstar
 from functools import reduce, partial
+import htmldraw
 import operator
 
 def tale(l):
@@ -189,9 +190,9 @@ class Table(list):
 # >>> p(_.slice(10,10))
 # Traceback (most recent call last):
 #   File "<console>", line 1, in <module>
-#   File "/home/pi/python/bible/table.py", line 78, in slice
+#   File "/home/pi/python/parle/table.py", line 78, in slice
 #     return Index([b-a for a,b in pairs(iy)])
-#   File "/home/pi/python/bible/table.py", line 66, in __init__
+#   File "/home/pi/python/parle/table.py", line 66, in __init__
 #     assert all((x>0 for x in self.values()))
 # AssertionError
 # >>> p(_.slice(5,35))

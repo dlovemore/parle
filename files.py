@@ -72,9 +72,9 @@ class FileSel:
 # >>> 
 # >>> 
 # >>> f.s
-# <files.Selector object at 0x7fbe1e5a04e0>
+# <files.Selector object at 0xb65c36d0>
 # >>> f.s
-# <files.Selector object at 0x7fbe1e5a0f28>
+# <files.Selector object at 0xb64fb910>
 # >>> f.s/'Good'/'Very good'
 # File('t')
 # >>> f.lines+=['The time','ends']
@@ -86,22 +86,34 @@ class FileSel:
 # >>> 
 # >>> 
 # >>> HOME().path
-# PosixPath('/home/dl')
+# PosixPath('/home/pi')
 # >>> (HOME()/'github.com').glob('*')
-# <generator object Path.glob at 0x7fbe1e585f10>
+# <generator object Path.glob at 0xb652bdf0>
 # >>> list(_)
-# [PosixPath('/home/dl/github.com/dlovemore'), PosixPath('/home/dl/github.com/ravenbrook'), PosixPath('/home/dl/github.com/clasp-developers')]
+# [PosixPath('/home/pi/github.com/dlovemore')]
 # >>> 
 # >>> Path.glob
-# <function Path.glob at 0x7fbe1e526378>
+# <function Path.glob at 0xb6592c00>
 # >>> import auto
 # >>> auto.os.listdir()
-# ['.gitignore', '.git', '__pycache__', 'primes.py', 'mint.py', '__init__.py', 'func.py', '.files.py.swp', 'files.py', 'fun.py', 't', 'table.py', 'sym.py', 'save.py', 'funtest.py', 'data.py']
+# ['__init__.py', '.git', 'fun.py', 'funtest.py', 'save.py', 'func.py', 'htmldraw.py', '.gitignore', 'table.py', 'mint.py', 'primes.py', 'data.py', '__pycache__', 'files.py', '.files.py.swp', 't', 'sym.py']
 # >>> Path.cwd()
-# PosixPath('/home/dl/github.com/dlovemore/parle')
+# PosixPath('/home/pi/python/parle')
 # >>> cwd()
-# File('/home/dl/github.com/dlovemore/parle')
+# File('/home/pi/python/parle')
+# >>> prop.text(f)
+# 'Very good day.\nAnother day\nThe time\nends\n'
+# >>> text=Func(prop.text)|default('')
+# >>> text(cwd())
+# ''
+# >>> text(f)
+# 'Very good day.\nAnother day\nThe time\nends\n'
 # >>> cwd().glob('*')
-# Row([File('/home/dl/github.com/dlovemore/parle/.gitignore'), File('/home/dl/github.com/dlovemore/parle/.git'), File('/home/dl/github.com/dlovemore/parle/__pycache__'), File('/home/dl/github.com/dlovemore/parle/primes.py'), File('/home/dl/github.com/dlovemore/parle/mint.py'), File('/home/dl/github.com/dlovemore/parle/__init__.py'), File('/home/dl/github.com/dlovemore/parle/func.py'), File('/home/dl/github.com/dlovemore/parle/.files.py.swp'), File('/home/dl/github.com/dlovemore/parle/files.py'), File('/home/dl/github.com/dlovemore/parle/fun.py'), File('/home/dl/github.com/dlovemore/parle/t'), File('/home/dl/github.com/dlovemore/parle/table.py'), File('/home/dl/github.com/dlovemore/parle/sym.py'), File('/home/dl/github.com/dlovemore/parle/save.py'), File('/home/dl/github.com/dlovemore/parle/funtest.py'), File('/home/dl/github.com/dlovemore/parle/data.py')])
+# Row([File('/home/pi/python/parle/__init__.py'), File('/home/pi/python/parle/.git'), File('/home/pi/python/parle/fun.py'), File('/home/pi/python/parle/funtest.py'), File('/home/pi/python/parle/save.py'), File('/home/pi/python/parle/func.py'), File('/home/pi/python/parle/htmldraw.py'), File('/home/pi/python/parle/.gitignore'), File('/home/pi/python/parle/table.py'), File('/home/pi/python/parle/mint.py'), File('/home/pi/python/parle/primes.py'), File('/home/pi/python/parle/data.py'), File('/home/pi/python/parle/__pycache__'), File('/home/pi/python/parle/files.py'), File('/home/pi/python/parle/.files.py.swp'), File('/home/pi/python/parle/t'), File('/home/pi/python/parle/sym.py')])
+# >>> _@text@len
+# Row([248, 0, 1145, 818, 4076, 7619, 1760, 18, 13910, 4346, 7689, 16109, 0, 3791, 0, 41, 7414])
+# >>> 
+# >>> 
+# >>> 
 # >>> 
 # >>> 
