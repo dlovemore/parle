@@ -1,6 +1,6 @@
 from auto import *
 from bisect import bisect_right
-from parle import pairs, aslist, Func, GetItem, I, redparts, unstar
+from func import pairs, aslist, Func, GetItem, I, redparts, unstar, meth, prop
 from functools import reduce, partial
 import htmldraw
 import operator
@@ -43,12 +43,18 @@ class Row(list):
         return Row(map(f, self))
     def __mul__(self, f):
         return f(*self)
+    def __getattr__(self, attr):
+       return self@(getattr(prop, attr))
     def __rtruediv__(self, f):
         if callable(f):
             return reduce(f,self)
         return self@Func(partial(operator.truediv,f))
+    def __truediv__(self, f):
+        return Row(map(meth.__truediv__(f), self))
     def __rfloordiv__(self, f):
         return Row(redparts(f,self))
+    def __str__(self):
+        return ' '.join(map(str,self))
     def __repr__(self):
         return f'{type(self).__name__}({super().__repr__()})'
 
