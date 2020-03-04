@@ -9,12 +9,10 @@ def rest(it):
 
 def firstrest(xs):
     it=iter(xs)
-    x=next(it)
-    y = rest(it)
-    return x, y
+    return next(it), rest(it)
 
-def first(xs): return firstrest(xs)[0]
-def rest(xs): return firstrest(xs)[1]
+def first(xs):
+    return next(iter(xs))
 
 def match(t):
     def match(xs):
@@ -28,59 +26,28 @@ def alt(p,q):
     def alt(xs):
         pass
 
-
+def f():
+    yield 1
+    yield 2
 
 
 # >>> from parser import *
 # >>> dir()
-# ['__builtins__', '__doc__', '__name__', 'alt', 'first', 'firstrest', 'match', 'rest', 'tee']
+# ['__builtins__', '__doc__', '__name__', 'alt', 'f', 'first', 'firstrest', 'match', 'rest', 'tee']
 # >>> it=iter([1,2,3])
 # >>> next(it)
 # 1
 # >>> rest(it)
-# <console>:1: 
-#     tee=<built-in function tee>
-#     rest=<function rest at 0x7f80f48466a8>
-#     firstrest=<function firstrest at 0x7f80f4846598>
-#     first=<function first at 0x7f80f4846620>
-#     match=<function match at 0x7f80f4846510>
-#     alt=<function alt at 0x7f80f4846730>
-#     it=<list_iterator object at 0x7f80f48409e8>
-# /home/dl/github.com/dlovemore/parle/parser.py:17: 
-#     xs=<list_iterator object at 0x7f80f48409e8>
-# /home/dl/github.com/dlovemore/parle/parser.py:13: 
-#     x=2
-#     it=<list_iterator object at 0x7f80f48409e8>
-#     xs=<list_iterator object at 0x7f80f48409e8>
-# /home/dl/github.com/dlovemore/parle/parser.py:17: 
-#     xs=<list_iterator object at 0x7f80f48409e8>
-# /home/dl/github.com/dlovemore/parle/parser.py:13: 
-#     x=3
-#     it=<list_iterator object at 0x7f80f48409e8>
-#     xs=<list_iterator object at 0x7f80f48409e8>
-# /home/dl/github.com/dlovemore/parle/parser.py:17: 
-#     xs=<list_iterator object at 0x7f80f48409e8>
-# /home/dl/github.com/dlovemore/parle/parser.py:12: 
-#     it=<list_iterator object at 0x7f80f48409e8>
-#     xs=<list_iterator object at 0x7f80f48409e8>
-# >>> next(it)
-# <console>:1: 
-#     tee=<built-in function tee>
-#     rest=<function rest at 0x7f80f48466a8>
-#     firstrest=<function firstrest at 0x7f80f4846598>
-#     first=<function first at 0x7f80f4846620>
-#     match=<function match at 0x7f80f4846510>
-#     alt=<function alt at 0x7f80f4846730>
-#     it=<list_iterator object at 0x7f80f48409e8>
-# >>> 
-# >>> 
+# <generator object rest at 0x7fb14ef3d780>
+# >>> list(_)
+# [2, 3]
 # >>> 
 # >>> 
 # >>> match(1)
-# <function match.<locals>.match at 0x7f51e9774e18>
+# <function match.<locals>.match at 0x7fb14e5cc7b8>
 # >>> m=match(1)
-# >>> m([1,2,3])
-# <generator object match.<locals>.match at 0x7f51e7893620>
-# >>> list(_)
-# []
+# >>> first(m([1,2,3]))
+# (1, <generator object rest at 0x7fb14e5c6678>)
+# >>> list(match(2)(_[1]))
+# [(2, <generator object rest at 0x7fb14e5c6780>)]
 # >>> 
