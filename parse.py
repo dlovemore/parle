@@ -31,7 +31,7 @@ def f():
     yield 2
 
 
-# >>> from parser import *
+# >>> from parse import *
 # >>> dir()
 # ['__builtins__', '__doc__', '__name__', 'alt', 'f', 'first', 'firstrest', 'match', 'rest', 'tee']
 # >>> it=iter([1,2,3])
