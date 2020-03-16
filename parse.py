@@ -64,48 +64,74 @@ def rule(G,name):
         return getattr(G, name)(xs)
     return rule
 
+def maybe(p):
+    def maybe(xs):
+        nonlocal p
+        xs, xs1 = tee(xs)
+        g=p(xs)
+        try:
+            yield first(g)
+        except StopIteration:
+            yield [None], xs1
+            return
+        yield from rest(g)
+    return maybe
+
+def many(xs):
+    pass
+
+
 # >>> from parse import *
 # >>> dir()
-# ['__builtins__', '__doc__', '__name__', 'alt', 'cat', 'cut', 'first', 'firstrest', 'group', 'match', 'node', 'rest', 'tee']
+# ['__builtins__', '__doc__', '__name__', 'alt', 'cat', 'chain', 'cut', 'first', 'firstrest', 'group', 'many', 'match', 'maybe', 'node', 'rest', 'rule', 'tee']
 # >>> it=iter([1,2,3])
 # >>> next(it)
 # 1
 # >>> rest(it)
-# <generator object rest at 0x7f9a6ebdd678>
+# <generator object rest at 0xb65d8eb0>
 # >>> list(_)
 # [2, 3]
 # >>> 
 # >>> 
 # >>> match(1)
-# <function match.<locals>.match at 0x7f9a70abee18>
+# <function match.<locals>.match at 0xb672a7c8>
 # >>> m=match(1)
 # >>> first(m([1,2,3]))
-# ([1], <generator object rest at 0x7f9a6e2c5678>)
+# ([1], <generator object rest at 0xb64e4530>)
 # >>> list(match(2)(_[1]))
-# [([2], <generator object rest at 0x7f9a6e2c5780>)]
+# [([2], <generator object rest at 0xb64e44b0>)]
 # >>> match(1)([0])
-# <generator object match.<locals>.match at 0x7f9a6e2c57d8>
+# <generator object match.<locals>.match at 0xb64e44f0>
 # >>> list(_)
 # []
 # >>> tee([1,2,3])
-# (<itertools._tee object at 0x7f9a6e2e0ac8>, <itertools._tee object at 0x7f9a6e2e0a08>)
+# (<itertools._tee object at 0xb650ba80>, <itertools._tee object at 0xb650ba58>)
 # >>> list(_[0]),list(_[1])
 # ([1, 2, 3], [1, 2, 3])
 # >>> m0or1=alt(match(0), match(1))
 # >>> list(m0or1([1,2,3]))
-# [([1], <generator object rest at 0x7f9a6e2c5678>)]
+# [([1], <generator object rest at 0xb64e4530>)]
 # >>> list(m0or1([2,2,3]))
 # []
 # >>> list(m0or1([0,2,3]))
-# [([0], <generator object rest at 0x7f9a6e2c5830>)]
+# [([0], <generator object rest at 0xb64e44b0>)]
 # >>> m12=cat(match(1),match(2))
 # >>> list(m12([1,2,3]))
-# [([1, 2], <generator object rest at 0x7f9a6e2c5990>)]
+# [([1, 2], <generator object rest at 0xb64e43f0>)]
 # >>> list(m12([1,1,3]))
 # []
 # >>> m123=cat(match(1),cat(match(2),match(3)))
 # >>> list(m123([1,2,3]))
-# [([1, 2, 3], <generator object rest at 0x7f9a6e2c5a40>)]
+# [([1, 2, 3], <generator object rest at 0xb64e42f0>)]
 # >>> list(m123([1,2,4]))
 # []
+# >>> m1q2=cat(maybe(match(1)),match(2))
+# >>> list(m1q2([1,2,3]))
+# [([1, 2], <generator object rest at 0xb64e4430>)]
+# >>> list(m1q2([2,3,1]))
+# [([None, 2], <generator object rest at 0xb64e42b0>)]
+# >>> list(m1q2([3,2,1]))
+# []
+# >>> 
+# >>> 
 # >>> 

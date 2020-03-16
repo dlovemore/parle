@@ -104,9 +104,9 @@ class Func:
     def __call__(self,*args,**kwargs):
         return self.f(*args,**kwargs)
     def __matmul__(self,other):
-        if isinstance(f, Func):
-            return Func(compose(self.f,other.F))
-        raise NotImplemented
+        if isinstance(self, Func):
+            return Func(compose(self.f,other.f))
+        return NotImplemented
     def __or__(self,f):
         return Func(partial(orr,self.f,f))
     def __repr__(self):
@@ -221,10 +221,17 @@ def positions(bs):
 
 def perm(*ks):
     assert sorted(ks)==list(range(len(ks)))
+    permuter=li(*ks)
+    nks=len(ks)
     def perm(l):
-        nonlocal ks
-        return type(l)([l[k] for k in ks])+l[len(ks):]
+        nonlocal nks,permuter
+        return type(l)(permuter(l))+l[nks:]
     return perm
+
+def select(*ks):
+    pass
+
+
 
 def permargs(*ks):
     def permargs(f):
@@ -273,7 +280,7 @@ swapargs=permargs(1,0)
 # >>> 
 # >>> 
 # >>> method.join
-# functools.partial(<function callmethod at 0xb6531d20>, 'join')
+# functools.partial(<function callmethod at 0xb64b4cd8>, 'join')
 # >>> method.join(',','abc')
 # 'a,b,c'
 # >>> 
@@ -283,7 +290,7 @@ swapargs=permargs(1,0)
 # >>> ap.abc
 # abc
 # >>> pairs('abcdefg')
-# <generator object windows at 0xb6529f30>
+# <generator object windows at 0xb64acf30>
 # >>> list(_)
 # [('a', 'b'), ('b', 'c'), ('c', 'd'), ('d', 'e'), ('e', 'f'), ('f', 'g')]
 # >>> 
@@ -309,14 +316,14 @@ swapargs=permargs(1,0)
 # >>> unstar(isinstance)(swap(int, 3))
 # True
 # >>> partial(compose(swap,unstar(isinstance)),int)
-# functools.partial(<function compose.<locals>.compose at 0xb6531858>, functools.partial(<function star.<locals>.star at 0xb64e69c0>, <function perm.<locals>.perm at 0xb64e6978>), functools.partial(<function apply at 0xb6531ed0>, <built-in function isinstance>), <class 'int'>)
+# functools.partial(<function compose.<locals>.compose at 0xb6462a98>, functools.partial(<function star.<locals>.star at 0xb6462a08>, <function perm.<locals>.perm at 0xb64629c0>), functools.partial(<function apply at 0xb64b4e88>, <built-in function isinstance>), <class 'int'>)
 # >>> _(9),_(True),_('aa'),_((1,2))
 # (True, True, False, False)
 # >>> 
 # >>> 
 # >>> 
 # >>> partial(compose(swap,partial(apply,isinstance)),int)
-# functools.partial(<function compose.<locals>.compose at 0xb6531858>, functools.partial(<function star.<locals>.star at 0xb64e69c0>, <function perm.<locals>.perm at 0xb64e6978>), functools.partial(<function apply at 0xb6531ed0>, <built-in function isinstance>), <class 'int'>)
+# functools.partial(<function compose.<locals>.compose at 0xb64b4540>, functools.partial(<function star.<locals>.star at 0xb6462a08>, <function perm.<locals>.perm at 0xb64629c0>), functools.partial(<function apply at 0xb64b4e88>, <built-in function isinstance>), <class 'int'>)
 # >>> _('a'),_(3)
 # (False, True)
 # >>> 
@@ -361,5 +368,12 @@ swapargs=permargs(1,0)
 # >>> callable(F)
 # True
 # >>> F(list)@F(map)
-# <console>:1: TypeError: unsupported operand type(s) for @: 'F' and 'F'
+# <console>:1: AttributeError: 'F' object has no attribute 'F'
+# /home/pi/python/parle/func.py:108: AttributeError: 'F' object has no attribute 'F'
+#     self=F(<class 'list'>)
+#     other=F(<class 'map'>)
+# >>> F(list)
+# F(<class 'list'>)
+# >>> type(_)
+# <class 'func.F'>
 # >>> 
