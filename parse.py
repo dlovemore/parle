@@ -15,6 +15,12 @@ def firstrest(xs):
 def first(xs):
     return next(iter(xs))
 
+def a(g):
+    try:
+        return first(g)
+    except StopIteration:
+        pass
+
 def match(t):
     def eq(xs):
         nonlocal t
@@ -109,6 +115,9 @@ def many(p): return cat(p,anytimes(p))
 def either(ts): return reduce(alt, map(match,ts))
 
 def cats(ps): return reduce(cat,ps)
+
+def pone(g): return a(map(first,g))
+def pall(g): return list(map(first,g))
 
 # >>> from parse import *
 # >>> dir()
