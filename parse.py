@@ -22,6 +22,10 @@ def a(g):
     except StopIteration:
         pass
 
+def empty(xs):
+    yield [],xs
+
+
 def check(f):
     def check(xs):
         nonlocal f
@@ -130,6 +134,14 @@ def mintimes(p):
             for t,ys in mintimes(xs):
                 yield s+t, ys
     return mintimes
+
+def manysep(p,sep): return cat(p,anytimes(cat(sep,p)))
+
+def anysep(p,sep): return alt(manysep(p,sep),empty)
+
+def manysepfq(p,sep): return cat(cat(p,anytimes(sep,p)),maybe(sep))
+
+def anysepfq(p,sep): return alt(manysepfq(p,sep),maybe(sep))
 
 def many(p): return cat(p,anytimes(p))
 

@@ -1,6 +1,6 @@
 from auto import *
 from bisect import bisect_right
-from func import pairs, aslist, Func, GetItem, I, redparts, unstar, meth, prop
+from func import pairs, aslist, Func, GetItem, I, redparts, unstar, meth, prop, lmap
 from functools import reduce, partial
 import htmldraw
 import operator
@@ -26,6 +26,11 @@ def table(words,vals):
 
 def modifierlen(s):
     return sum([unicodedata.category(c) in {'Mn','Lm'} for c in s])
+
+def fill(vv,fillvalue=''):
+    vv=list(vv)
+    M=max((len(v) for v in vv))
+    return Table([v if len(v)==M else v+[fillvalue]*(M-len(v)) for v in vv])
 
 def justify(vv,align='center'):
     zvv=list(itertools.zip_longest(*(map(str,v) for v in vv), fillvalue=''))
@@ -81,29 +86,37 @@ class Index:
     def slice(self,i,j):
         a,b=self.lookup(i), self.lookup(j-1)
         iy=self.ix[a:b]
-        iy=[i]+iy+[j]
+        iy=[] if i==j else [i]+iy+[j]
         return Index([b-a for a,b in pairs(iy)])
+    def start(self,k): return self.ix[k-1] if k else 0
+    def stop(self,k): return self.ix[k] if k is not None else self.ix[-1]
     def portion(self,k):
-        return (self.ix[k-1],self.ix[k]) if k else (0,self.ix[0])
+        return (self.start(k),self.stop(k))
     def portions(self):
         return [self.portion(k) for k in range(len(self.ix))]
     def lookup(self,k):
         return bisect_right(self.ix,k)
     def values(self):
         return [self.value(i) for i in range(len(self.ix))]
+    def __len__(self): return len(self.ix)
     def __repr__(self):
         return f'{type(self).__name__}([{",".join(map(str,self.values()))}])'
 
 def diff(l): return [y-x for x,y in pairs(l)]
 def lookup(ix,iy): return Index(diff([0]+[iy.lookup(x) for x in ix.ix]))
 
-class Table(list):
+class Table:
     def __init__(self, values, levels=None, ixs=None):
-        if ixs is not None:
+        if isinstance(values, Table):
+            self.vs=values.vs
+            self.ixs=values.ixs
+        elif ixs is not None:
             assert levels is None
             self.vs=values
             self.ixs=ixs
         else:
+            if all((isinstance(v, Table) for v in values)):
+                values=[v.values() for v in values]
             vs=values
             ixs=[]
             level=0
@@ -113,9 +126,18 @@ class Table(list):
                 level+=1
             self.vs=vs
             self.ixs=ixs
+    def __matmul__(self, f):
+        return Table(lmap(f, self.vs),ixs=self.ixs)
+    def __add__(self, other):
+        return Table(self.values()+Table(other).values())
     def __getitem__(self,k):
-        if self.ixs:
-            ixs=[self.ixs[x].slice(i,j) for x in range(0,len(self.ixs)-1)]
+        if isinstance(k, int):
+            i,j = self.ixs[-1].portion(k)
+            ixs=[self.ixs[x].slice(i,j) for x in range(len(self.ixs)-1)]
+            return Table(self.vs[i:j], ixs=ixs)
+        elif isinstance(k, slice):
+            i,j = self.ixs[-1].start(k.start), self.ixs[-1].stop(k.stop)
+            ixs=[self.ixs[x].slice(i,j) for x in range(len(self.ixs))]
             return Table(self.vs[i:j], ixs=ixs)
     def __rtruediv__(self, f):
         if self.ixs:
@@ -125,13 +147,20 @@ class Table(list):
         else:
             reduce(f,self.vs)
     def __iter__(self):
-        yield from self.groups()
+        gs=self.groups()
+        if gs is not None:
+            yield from gs
     def __call__(self, f):
         def apply(f,*args):
             args = [a if isinstance(a,Table) else itertools.repeat(a) for a in args]
             vs=[f(*x) for x in zip(self.vs,*args)]
             return Table(vs,ixs=self.ixs)
         return functools.partial(apply,f)
+    def __len__(self):
+        if self.ixs:
+            return len(self.ixs[-1])
+        else:
+            return len(self.vs)
     def size(self):
         return sum(self)
     def groups(self):
@@ -139,6 +168,8 @@ class Table(list):
             for i,j in self.ixs[-1].portions():
                 ixs=[self.ixs[k].slice(i,j) for k in range(0,len(self.ixs)-1)]
                 yield Table(self.vs[i:j],ixs=ixs)
+        else:
+            yield from self.vs
     def values(self):
         if self.ixs:
             return [g.values() for g in self.groups()]
@@ -194,13 +225,7 @@ class Table(list):
 # >>> p(_.slice(10,24))
 # Index([10,4])
 # >>> p(_.slice(10,10))
-# Traceback (most recent call last):
-#   File "<console>", line 1, in <module>
-#   File "/home/pi/python/parle/table.py", line 78, in slice
-#     return Index([b-a for a,b in pairs(iy)])
-#   File "/home/pi/python/parle/table.py", line 66, in __init__
-#     assert all((x>0 for x in self.values()))
-# AssertionError
+# Index([])
 # >>> p(_.slice(5,35))
 # Index([5,10,10,5])
 # >>> 
@@ -211,7 +236,7 @@ class Table(list):
 # >>> p(_)
 # 1 2 3
 # >>> p(list(_.groups()))
-# []
+# [1, 2, 3]
 # >>> 
 # >>> Table([list(range(i,i+10)) for i in range(0,100,10)])
 # Table([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99],[Index([10,10,10,10,10,10,10,10,10,10])])
@@ -219,6 +244,42 @@ class Table(list):
 # Table([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99],[Index([10,10,10,10,10,10,10,10,10,10])])
 # >>> 
 # >>> p(_)
+#  0  1  2  3  4  5  6  7  8  9
+# 10 11 12 13 14 15 16 17 18 19
+# 20 21 22 23 24 25 26 27 28 29
+# 30 31 32 33 34 35 36 37 38 39
+# 40 41 42 43 44 45 46 47 48 49
+# 50 51 52 53 54 55 56 57 58 59
+# 60 61 62 63 64 65 66 67 68 69
+# 70 71 72 73 74 75 76 77 78 79
+# 80 81 82 83 84 85 86 87 88 89
+# 90 91 92 93 94 95 96 97 98 99
+# 
+# >>> p(_[0])
+# 0 1 2 3 4 5 6 7 8 9
+# >>> p(_[1])
+# 10 11 12 13 14 15 16 17 18 19
+# >>> p(_[-1])
+# 90 91 92 93 94 95 96 97 98 99
+# >>> p(_[1:3])
+# 10 11 12 13 14 15 16 17 18 19
+# 20 21 22 23 24 25 26 27 28 29
+# 30 31 32 33 34 35 36 37 38 39
+# 
+# >>> p(_[:2])
+#  0  1  2  3  4  5  6  7  8  9
+# 10 11 12 13 14 15 16 17 18 19
+# 20 21 22 23 24 25 26 27 28 29
+# 
+# >>> p(_[4:])
+# 40 41 42 43 44 45 46 47 48 49
+# 50 51 52 53 54 55 56 57 58 59
+# 60 61 62 63 64 65 66 67 68 69
+# 70 71 72 73 74 75 76 77 78 79
+# 80 81 82 83 84 85 86 87 88 89
+# 90 91 92 93 94 95 96 97 98 99
+# 
+# >>> p(_[:])
 #  0  1  2  3  4  5  6  7  8  9
 # 10 11 12 13 14 15 16 17 18 19
 # 20 21 22 23 24 25 26 27 28 29
@@ -262,6 +323,15 @@ class Table(list):
 # 
 # justify(vv, align='center')
 # 
+# >>> Table([Table([1,2,3]),Table([4,5,6])])
+# <console>:1: KeyboardInterrupt
+# /home/pi/python/parle/table.py:121: KeyboardInterrupt
+#     values=[Table([1, 2, 3],[]), Table([4, 5, 6],[])]
+#     level=162176
+#     vs=[]
+#     levels=None
+#     ixs=[Index([3,3]), Index([]), Index([]), Index([]), Index([]), In...
+#     self=ERROR
 # >>> 
 # >>> 
 # >>> p(list(_.groups()))
@@ -299,15 +369,11 @@ class Table(list):
 # [[range(0, 3), range(3, 6), range(6, 9), range(9, 10)], [range(10, 13), range(13, 16), range(16, 19), range(19, 20), range(20, 23), range(23, 26), range(26, 29), range(29, 30)], [range(30, 33), range(33, 36), range(36, 39), range(39, 40)], [range(40, 43), range(43, 46), range(46, 49), range(49, 50)]]
 # >>> 
 # >>> p(t(add)(200))
-# Traceback (most recent call last):
-#   File "<console>", line 1, in <module>
-# NameError: name 'add' is not defined
+# <console>:1: NameError: name 'add' is not defined
 # >>> t
 # Table(range(0, 50),[Index([3,3,3,1,3,3,3,1,3,3,3,1,3,3,3,1,3,3,3,1]), Index([10,20,10,10])])
 # >>> add/t
-# Traceback (most recent call last):
-#   File "<console>", line 1, in <module>
-# NameError: name 'add' is not defined
+# <console>:1: NameError: name 'add' is not defined
 # >>> p(_)
 # 0 1 2
 # 3 4 5
@@ -348,6 +414,7 @@ class Table(list):
 # >>> r@functools.partial(operator.add,1)
 # Row([2, 3, 4])
 # >>> from parle.sym import E
+# ['/home/pi/python/parle', '/home/pi/python/side', '/home/pi/python', '/usr/lib/python37.zip', '/usr/lib/python3.7', '/usr/lib/python3.7/lib-dynload', '/home/pi/.local/lib/python3.7/site-packages', '/usr/local/lib/python3.7/dist-packages', '/usr/lib/python3/dist-packages', '/home/pi/python/parle']
 # >>> dir(E)
 # ['__add__', '__and__', '__call__', '__class__', '__contains__', '__delattr__', '__dict__', '__dir__', '__doc__', '__eq__', '__floordiv__', '__format__', '__ge__', '__getattribute__', '__getitem__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__invert__', '__le__', '__lshift__', '__lt__', '__matmul__', '__mod__', '__module__', '__mul__', '__ne__', '__neg__', '__new__', '__or__', '__pos__', '__pow__', '__reduce__', '__reduce_ex__', '__repr__', '__rshift__', '__setattr__', '__sizeof__', '__str__', '__sub__', '__subclasshook__', '__truediv__', '__weakref__', '__xor__', 'a1', 'a2', 'args', 'exprs', 'lhs', 'op', 'rhs']
 # >>> E(2)
@@ -362,7 +429,7 @@ class Table(list):
 # >>> from parle.func import *
 # >>> f=Dict[1:2, 3:4]|default(-1)
 # >>> Row([1,2,3,4])@f
-# Row([2, -1, 4, -1])
+# Row([2, None, 4, None])
 # >>> 
 # >>> operator.add/Row([1,2,3,4,5])
 # 15
@@ -376,8 +443,9 @@ class Table(list):
 # >>> Func(partial(operator.add,1))(2)
 # 3
 # >>> from search import span
+# <console>:1: ModuleNotFoundError: No module named 'search'
 # >>> operator.add/Row(span(10))
-# 55
+# <console>:1: NameError: name 'span' is not defined
 # >>> 
 # >>> Row[12,]
 # Row([12])
@@ -394,7 +462,7 @@ class Table(list):
 # Row([1000, 1001, 1003, 1006, 1010])
 # >>> 
 # >>> Row[range(10)]@(Dict[2:3,5:7,4:13]|I)
-# Row([0, 1, 3, 3, 13, 7, 6, 7, 8, 9])
+# Row([None, None, 3, None, 13, 7, None, None, None, None])
 # >>> sub=Binop(operator.sub)
 # >>> 
 # >>> Row([100,200,300])
@@ -402,12 +470,6 @@ class Table(list):
 # >>> 
 # >>> 10@sub@2
 # 8
-# >>> from search import *
-# >>> span=compose(span,Row)
-# >>> Row['a','z']@ord*span@chr
-# Row(['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'])
-# >>> span(*map(ord, ('a','z')))@chr
-# Row(['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'])
 # >>> 
 # >>> 
 # >>> 
@@ -415,7 +477,7 @@ class Table(list):
 # >>> 
 # >>> 
 # >>> unstar(range)
-# functools.partial(<function apply at 0xb651d0c0>, <class 'range'>)
+# functools.partial(<function apply at 0xb639ca50>, <class 'range'>)
 # >>> _((1,2))
 # range(1, 2)
 # >>> 
