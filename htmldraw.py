@@ -1,6 +1,9 @@
+from func import *
 import subprocess
 import html
 import webbrowser
+
+TAG=''
 
 def draw(s):
     with open('t.html','w') as f:
@@ -10,17 +13,21 @@ def draw(s):
 
 def show(t): draw(th(t))
 
+def escape(x): return html.escape(str(x))
+
 def th(t):
     if isinstance(t, str) or not isinstance(t, list):
-        return html.escape(str(t))
+        return escape(t)
     n = t[0]
     if isinstance(n, str):
         return f"<{n}>{''.join(map(th, t[1:]))}</{n}>"
     if isinstance(n, dict):
-        tagattrs = ' '.join([n['tag']]+[f'{a}="{v}"' for a,v in n if a!='tag'])
-        return f"<{tagattrs}>{''.join(map(th, t[1:]))}</{n['tag']}>"
+        tagattrs = ' '.join([n[TAG]]+[f'{a}="{escape(v)}"' for a,v in n.items() if a!=TAG])
+        return f"<{tagattrs}>{''.join(map(th, t[1:]))}</{n[TAG]}>"
     print(t)
     raise ValueError
+
+svg=Dict[TAG:'svg', 'xmlns':"http://www.w3.org/2000/svg", 'top':0, 'width':'100%', 'left':0, 'height':'100%']
 
 def table(vv):
     return ['table']+[['tr']+[['td',x] for x in v] for v in vv]
@@ -48,9 +55,11 @@ def trrow(tr):
         else:
             return tr
     elif isinstance(n, dict):
-        if n['tag']=='tr':
+        if n[TAG]=='tr':
             return ...
 
+def scale(s,t):
+    return [svg,[{TAG:'g', 'transform':f"scale({s})"}, t]]
 
 # >>> from htmldraw import *
 # >>> 
@@ -65,5 +74,21 @@ def trrow(tr):
 ## >>> draw(_)
 # >>> dir(html)
 # ['__all__', '__builtins__', '__cached__', '__doc__', '__file__', '__loader__', '__name__', '__package__', '__path__', '__spec__', '_charref', '_html5', '_invalid_charrefs', '_invalid_codepoints', '_re', '_replace_charref', 'entities', 'escape', 'unescape']
+# >>> 
+# >>> th([{TAG:'p', 'align':'right'},"Word"])
+# '<p align="right">Word</p>'
+## >>> draw(_)
+# >>> c=[svg['height':200,'width':200], [{TAG:'circle', 'cx':100, 'cy':100, 'r':90, 'stroke':'black', 'fill':'blue','stroke-width':3}]]
+# >>> th(c)
+# '<svg xmlns="http://www.w3.org/2000/svg" top="0" width="200" left="0" height="200"><circle cx="100" cy="100" r="90" stroke="black" fill="blue" stroke-width="3"></circle></svg>'
+# >>> div=Dict[TAG:'div']
+# >>> scale(2,c)
+# [<class 'func.Lookup'>['': 'svg', 'xmlns': 'http://www.w3.org/2000/svg', 'top': 0, 'width': '100%', 'left': 0, 'height': '100%'], [{'': 'g', 'transform': 'scale(2)'}, [<class 'func.Lookup'>['': 'svg', 'xmlns': 'http://www.w3.org/2000/svg', 'top': 0, 'width': 200, 'left': 0, 'height': 200], [{'': 'circle', 'cx': 100, 'cy': 100, 'r': 90, 'stroke': 'black', 'fill': 'blue', 'stroke-width': 3}]]]]
+# >>> #show(_)
+# >>> 
+# >>> #show(table([div,[div,scale(2,c),c,scale(.5,c)],scale(.66,[div,c,c,c,c])]))
+# >>> 
+# >>> 
+# >>> 
 # >>> 
 # >>> 

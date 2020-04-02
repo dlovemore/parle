@@ -81,21 +81,21 @@ class FileSel:
 # >>> File('u').text = 'A very good time was had by all'
 # >>> p=print
 # >>> cwd().glob('?')
-# Row([File('/home/dl/github.com/dlovemore/parle/u'), File('/home/dl/github.com/dlovemore/parle/t')])
+# Row([File('/home/pi/python/parle/u'), File('/home/pi/python/parle/t')])
 # >>> p(_)
 # u t
 # >>> _@s(r'[gG]ood','GOOD')
-# Row([File('/home/dl/github.com/dlovemore/parle/u'), File('/home/dl/github.com/dlovemore/parle/t')])
+# Row([File('/home/pi/python/parle/u'), File('/home/pi/python/parle/t')])
 # >>> _@prop.text
 # Row(['A very GOOD time was had by all', 'GOOD Day.\nAnother Day\n'])
 # >>> glob('?')@prop.s
-# Row([<files.Selector object at 0x7fa366177828>, <files.Selector object at 0x7fa365cedb38>])
+# Row([<files.Selector object at 0xb6473f30>, <files.Selector object at 0xb6473eb0>])
 # >>> _/'GOOD'
 # Row([u:GOOD, t:GOOD])
 # >>> _/'good'
-# Row([File('/home/dl/github.com/dlovemore/parle/u'), File('/home/dl/github.com/dlovemore/parle/t')])
+# Row([File('/home/pi/python/parle/u'), File('/home/pi/python/parle/t')])
 # >>> _@s('^g','G')
-# Row([File('/home/dl/github.com/dlovemore/parle/u'), File('/home/dl/github.com/dlovemore/parle/t')])
+# Row([File('/home/pi/python/parle/u'), File('/home/pi/python/parle/t')])
 # >>> 
 # >>> 
 # >>> 
@@ -112,9 +112,9 @@ class FileSel:
 # >>> 
 # >>> 
 # >>> f.s
-# <files.Selector object at 0x7fa366177828>
+# <files.Selector object at 0xb6473fd0>
 # >>> f.s
-# <files.Selector object at 0x7fa3665c7c50>
+# <files.Selector object at 0xb6473f50>
 # >>> f.s/'Good'/'Very good'
 # File('t')
 # >>> f.lines+=['The time','ends']
@@ -125,24 +125,24 @@ class FileSel:
 # >>> 
 # >>> 
 # >>> HOME().path
-# PosixPath('/home/dl')
+# PosixPath('/home/pi')
 # >>> (HOME()/'github.com').glob('*')
-# <generator object Path.glob at 0x7fa36618be08>
+# <generator object Path.glob at 0xb643fbf0>
 # >>> list(_)
-# [PosixPath('/home/dl/github.com/dlovemore'), PosixPath('/home/dl/github.com/ravenbrook'), PosixPath('/home/dl/github.com/clasp-developers')]
+# [PosixPath('/home/pi/github.com/dlovemore')]
 # >>> 
 # >>> Path.glob
-# <function Path.glob at 0x7fa365cf3488>
+# <function Path.glob at 0xb6367f60>
 # >>> import auto
 # >>> auto.os.listdir()
-# ['.gitignore', '.git', 'htmldraw.py', 'u', '__pycache__', 'primes.py', 'mint.py', '__init__.py', 'func.py', '.files.py.swp', 'files.py', 'fun.py', 't', 'table.py', 'sym.py', 'save.py', 'funtest.py', 'sand', 'data.py', '__init__.pyc']
+# ['__init__.py', '.git', 'fun.py', 't.html', 'funtest.py', 'save.py', 'func.py', 'htmldraw.py', '.gitignore', 'table.py', 'mint.py', 'primes.py', 'data.py', '__pycache__', 'files.py', 'u', '.files.py.swp', 't', 'sym.py', 'parse.py']
 # >>> Path.cwd()
-# PosixPath('/home/dl/github.com/dlovemore/parle')
+# PosixPath('/home/pi/python/parle')
 # >>> cwd()
-# File('/home/dl/github.com/dlovemore/parle')
+# File('/home/pi/python/parle')
 # >>> prop.text(f)
 # 'Very good Day.\nAnother Day\nThe time\nends\n'
-# >>> text=Func(prop.text)|default('')
+# >>> text=Func(prop.text)|K('')
 # >>> text(cwd())
 # ''
 # >>> text(f)

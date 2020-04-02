@@ -2,6 +2,8 @@ from functools import partial, reduce
 from operator import itemgetter as li
 import operator
 
+p=print
+
 class Attr:
     def __init__(self, f):
         self.f=f
@@ -21,6 +23,13 @@ class GetItem:
         return self.f(k)
 
 def I(x): return x
+def const(x):
+    def const(y):
+        nonlocal x
+        return x
+    return const
+
+K=const
 
 @Attr
 class Unique:
@@ -59,6 +68,8 @@ def getprop(name,object): return getattr(object,name)
 @Attr
 def prop(name): return partial(getprop,name)
 
+q=Attr(str)
+
 def aslist(f):
     def tolist(f,*args):
         return list(f(*args))
@@ -91,13 +102,9 @@ def orr(f,g,x):
 
 class Unique: pass
 
-def default(x):
-    def I(x,y): return x
-    return partial(I,x)
-
 class Func:
     def __init__(self,f,domain=None):
-        self.f=f if callable(f) else default(f)
+        self.f=f if callable(f) else const(f)
         self.domain=self.f if domain else domain
     def __contains__(self, k):
         return k in self.f
@@ -156,7 +163,7 @@ divide=Binop(operator.truediv)
 div=Binop(operator.floordiv)
 mul=Binop(operator.mul)
 
-class Dict(dict):
+class Lookup(dict):
     def __call__(self,k):
         return super().get(k)
     def __or__(self,f):
@@ -167,10 +174,17 @@ class Dict(dict):
         return Func(self)|f
     def __matmul__(self, f):
         ...
+    def get(self,k):
+        return super().__getitem__(k)
     def __getitem__(self,kvs):
         if isinstance(kvs, slice): kvs=(kvs,)
-        return type(self)(zip((kv.start for kv in kvs), (kv.stop for kv in kvs)))|self
-Dict=Dict()
+        if isinstance(kvs, tuple):
+            return self|type(self)(zip((kv.start for kv in kvs), (kv.stop for kv in kvs)))
+        return self.get(kvs)
+    def __repr__(self):
+        return f'{type(self)}[{super().__repr__()[1:-1]}]'
+
+Dict=Lookup()
 
 def windows(n,xs):
     l=[]
@@ -280,7 +294,7 @@ swapargs=permargs(1,0)
 # >>> 
 # >>> 
 # >>> method.join
-# functools.partial(<function callmethod at 0xb64b4cd8>, 'join')
+# functools.partial(<function callmethod at 0xb64e9c90>, 'join')
 # >>> method.join(',','abc')
 # 'a,b,c'
 # >>> 
@@ -290,7 +304,7 @@ swapargs=permargs(1,0)
 # >>> ap.abc
 # abc
 # >>> pairs('abcdefg')
-# <generator object windows at 0xb64acf30>
+# <generator object windows at 0xb64e1f30>
 # >>> list(_)
 # [('a', 'b'), ('b', 'c'), ('c', 'd'), ('d', 'e'), ('e', 'f'), ('f', 'g')]
 # >>> 
@@ -316,14 +330,14 @@ swapargs=permargs(1,0)
 # >>> unstar(isinstance)(swap(int, 3))
 # True
 # >>> partial(compose(swap,unstar(isinstance)),int)
-# functools.partial(<function compose.<locals>.compose at 0xb6462a98>, functools.partial(<function star.<locals>.star at 0xb6462a08>, <function perm.<locals>.perm at 0xb64629c0>), functools.partial(<function apply at 0xb64b4e88>, <built-in function isinstance>), <class 'int'>)
+# functools.partial(<function compose.<locals>.compose at 0xb649fa50>, functools.partial(<function star.<locals>.star at 0xb649f9c0>, <function perm.<locals>.perm at 0xb649f978>), functools.partial(<function apply at 0xb64e9e40>, <built-in function isinstance>), <class 'int'>)
 # >>> _(9),_(True),_('aa'),_((1,2))
 # (True, True, False, False)
 # >>> 
 # >>> 
 # >>> 
 # >>> partial(compose(swap,partial(apply,isinstance)),int)
-# functools.partial(<function compose.<locals>.compose at 0xb64b4540>, functools.partial(<function star.<locals>.star at 0xb6462a08>, <function perm.<locals>.perm at 0xb64629c0>), functools.partial(<function apply at 0xb64b4e88>, <built-in function isinstance>), <class 'int'>)
+# functools.partial(<function compose.<locals>.compose at 0xb64e94f8>, functools.partial(<function star.<locals>.star at 0xb649f9c0>, <function perm.<locals>.perm at 0xb649f978>), functools.partial(<function apply at 0xb64e9e40>, <built-in function isinstance>), <class 'int'>)
 # >>> _('a'),_(3)
 # (False, True)
 # >>> 
@@ -345,7 +359,7 @@ swapargs=permargs(1,0)
 # >>> 
 # >>> 
 # >>> 
-# >>> f=Dict|{1:2, 3:4}|default(7)
+# >>> f=Dict|{1:2, 3:4}|K(7)
 # >>> [f(x) for x in range(1,6)]
 # [2, None, 4, None, None]
 # >>> 
@@ -353,6 +367,17 @@ swapargs=permargs(1,0)
 # [2, 1, 3]
 # >>> Dict[3:4](3)
 # 4
+# >>> Dict[3:4,5:6]
+# <class 'func.Lookup'>[3: 4, 5: 6]
+# >>> _(5)
+# 6
+# >>> Dict[3:4,5:6][7:8]
+# <class 'func.Lookup'>[3: 4, 5: 6, 7: 8]
+# >>> Dict[3:4,5:6][7:8][3:-3]
+# <class 'func.Lookup'>[3: -3, 5: 6, 7: 8]
+# >>> p(_(3))
+# -3
+# >>> 
 # >>> 
 # >>> meth.join(map(str,range(10)))(', ')
 # '0, 1, 2, 3, 4, 5, 6, 7, 8, 9'
@@ -368,12 +393,13 @@ swapargs=permargs(1,0)
 # >>> callable(F)
 # True
 # >>> F(list)@F(map)
-# <console>:1: AttributeError: 'F' object has no attribute 'F'
-# /home/pi/python/parle/func.py:108: AttributeError: 'F' object has no attribute 'F'
-#     self=F(<class 'list'>)
-#     other=F(<class 'map'>)
+# Func(functools.partial(<function compose.<locals>.compose at 0xb6512198>, <class 'list'>, <class 'map'>))
 # >>> F(list)
 # F(<class 'list'>)
 # >>> type(_)
 # <class 'func.F'>
+# >>> Dict['a':'b']|I
+# Func(functools.partial(<function orr at 0xb6512f60>, <class 'func.Lookup'>['a': 'b'], <function I at 0xb6512858>))
+# >>> p(_('c'),_('a'))
+# None b
 # >>> 

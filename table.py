@@ -324,49 +324,20 @@ class Table:
 # justify(vv, align='center')
 # 
 # >>> Table([Table([1,2,3]),Table([4,5,6])])
-# <console>:1: KeyboardInterrupt
-# /home/pi/python/parle/table.py:121: KeyboardInterrupt
-#     values=[Table([1, 2, 3],[]), Table([4, 5, 6],[])]
-#     level=162176
-#     vs=[]
-#     levels=None
-#     ixs=[Index([3,3]), Index([]), Index([]), Index([]), Index([]), In...
-#     self=ERROR
+# Table([1, 2, 3, 4, 5, 6],[Index([3,3])])
 # >>> 
 # >>> 
 # >>> p(list(_.groups()))
-# [Table(range(0, 10),[Index([3,3,3,1])]), Table(range(10, 30),[Index([3,3,3,1,3,3,3,1])]), Table(range(30, 40),[Index([3,3,3,1])]), Table(range(40, 50),[Index([3,3,3,1])])]
+# [Table([1, 2, 3],[]), Table([4, 5, 6],[])]
 # >>> 
 # >>> p(list(map(str,_.groups())))
-# ['0 1 2\n3 4 5\n6 7 8\n9    \n', '10 11 12\n13 14 15\n16 17 18\n19      \n20 21 22\n23 24 25\n26 27 28\n29      \n', '30 31 32\n33 34 35\n36 37 38\n39      \n', '40 41 42\n43 44 45\n46 47 48\n49      \n']
+# ['1 2 3', '4 5 6']
 # >>> p(_)
-# 0 1 2
-# 3 4 5
-# 6 7 8
-# 9    
-# 
-# 10 11 12
-# 13 14 15
-# 16 17 18
-# 19      
-# 20 21 22
-# 23 24 25
-# 26 27 28
-# 29      
-# 
-# 30 31 32
-# 33 34 35
-# 36 37 38
-# 39      
-# 
-# 40 41 42
-# 43 44 45
-# 46 47 48
-# 49      
-# 
+# 1 2 3
+# 4 5 6
 # 
 # >>> p(_.values())
-# [[range(0, 3), range(3, 6), range(6, 9), range(9, 10)], [range(10, 13), range(13, 16), range(16, 19), range(19, 20), range(20, 23), range(23, 26), range(26, 29), range(29, 30)], [range(30, 33), range(33, 36), range(36, 39), range(39, 40)], [range(40, 43), range(43, 46), range(46, 49), range(49, 50)]]
+# [[1, 2, 3], [4, 5, 6]]
 # >>> 
 # >>> p(t(add)(200))
 # <console>:1: NameError: name 'add' is not defined
@@ -414,7 +385,6 @@ class Table:
 # >>> r@functools.partial(operator.add,1)
 # Row([2, 3, 4])
 # >>> from parle.sym import E
-# ['/home/pi/python/parle', '/home/pi/python/side', '/home/pi/python', '/usr/lib/python37.zip', '/usr/lib/python3.7', '/usr/lib/python3.7/lib-dynload', '/home/pi/.local/lib/python3.7/site-packages', '/usr/local/lib/python3.7/dist-packages', '/usr/lib/python3/dist-packages', '/home/pi/python/parle']
 # >>> dir(E)
 # ['__add__', '__and__', '__call__', '__class__', '__contains__', '__delattr__', '__dict__', '__dir__', '__doc__', '__eq__', '__floordiv__', '__format__', '__ge__', '__getattribute__', '__getitem__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__invert__', '__le__', '__lshift__', '__lt__', '__matmul__', '__mod__', '__module__', '__mul__', '__ne__', '__neg__', '__new__', '__or__', '__pos__', '__pow__', '__reduce__', '__reduce_ex__', '__repr__', '__rshift__', '__setattr__', '__sizeof__', '__str__', '__sub__', '__subclasshook__', '__truediv__', '__weakref__', '__xor__', 'a1', 'a2', 'args', 'exprs', 'lhs', 'op', 'rhs']
 # >>> E(2)
@@ -427,7 +397,7 @@ class Table:
 # Row([3, 6, 9])
 # >>> 
 # >>> from parle.func import *
-# >>> f=Dict[1:2, 3:4]|default(-1)
+# >>> f=Dict[1:2, 3:4]|K(-1)
 # >>> Row([1,2,3,4])@f
 # Row([2, None, 4, None])
 # >>> 
@@ -471,13 +441,13 @@ class Table:
 # >>> 10@sub@2
 # 8
 # >>> 
-# >>> 
-# >>> 
-# >>> 
-# >>> 
-# >>> 
 # >>> unstar(range)
-# functools.partial(<function apply at 0xb639ca50>, <class 'range'>)
+# functools.partial(<function apply at 0xb63840c0>, <class 'range'>)
 # >>> _((1,2))
 # range(1, 2)
+# >>> 
+# >>> Row[1,23]
+# Row([1, 23])
+# >>> 
+# >>> 
 # >>> 
