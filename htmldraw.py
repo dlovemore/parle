@@ -27,7 +27,8 @@ def th(t):
     print(t)
     raise ValueError
 
-svg=Dict[TAG:'svg', 'xmlns':"http://www.w3.org/2000/svg", 'top':0, 'width':'100%', 'left':0, 'height':'100%']
+# svg=Dict[TAG:'svg', 'xmlns':"http://www.w3.org/2000/svg", 'top':0, 'width':'100%', 'left':0, 'height':'100%']
+svg=Dict[TAG:'svg', 'xmlns':"http://www.w3.org/2000/svg", 'top':0, 'left':0]
 
 def table(vv):
     return ['table']+[['tr']+[['td',x] for x in v] for v in vv]
@@ -80,13 +81,12 @@ def scale(s,t):
 ## >>> draw(_)
 # >>> c=[svg['height':200,'width':200], [{TAG:'circle', 'cx':100, 'cy':100, 'r':90, 'stroke':'black', 'fill':'blue','stroke-width':3}]]
 # >>> th(c)
-# '<svg xmlns="http://www.w3.org/2000/svg" top="0" width="200" left="0" height="200"><circle cx="100" cy="100" r="90" stroke="black" fill="blue" stroke-width="3"></circle></svg>'
+# '<svg xmlns="http://www.w3.org/2000/svg" top="0" left="0" height="200" width="200"><circle cx="100" cy="100" r="90" stroke="black" fill="blue" stroke-width="3"></circle></svg>'
 # >>> div=Dict[TAG:'div']
 # >>> scale(2,c)
-# [<class 'func.Lookup'>['': 'svg', 'xmlns': 'http://www.w3.org/2000/svg', 'top': 0, 'width': '100%', 'left': 0, 'height': '100%'], [{'': 'g', 'transform': 'scale(2)'}, [<class 'func.Lookup'>['': 'svg', 'xmlns': 'http://www.w3.org/2000/svg', 'top': 0, 'width': 200, 'left': 0, 'height': 200], [{'': 'circle', 'cx': 100, 'cy': 100, 'r': 90, 'stroke': 'black', 'fill': 'blue', 'stroke-width': 3}]]]]
+# [<class 'func.Lookup'>['': 'svg', 'xmlns': 'http://www.w3.org/2000/svg', 'top': 0, 'left': 0], [{'': 'g', 'transform': 'scale(2)'}, [<class 'func.Lookup'>['': 'svg', 'xmlns': 'http://www.w3.org/2000/svg', 'top': 0, 'left': 0, 'height': 200, 'width': 200], [{'': 'circle', 'cx': 100, 'cy': 100, 'r': 90, 'stroke': 'black', 'fill': 'blue', 'stroke-width': 3}]]]]
 # >>> #show(_)
-# >>> 
-# >>> #show(table([div,[div,scale(2,c),c,scale(.5,c)],scale(.66,[div,c,c,c,c])]))
+# >>> #show(([div,[div,scale(2,c),c,scale(.5,c)],scale(.66,[div,c,c,c,c])]))
 # >>> 
 # >>> 
 # >>> 
