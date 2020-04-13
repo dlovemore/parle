@@ -2,8 +2,6 @@ from functools import partial, reduce
 from operator import itemgetter as li
 import operator
 
-p=print
-
 class Attr:
     def __init__(self, f):
         self.f=f
@@ -150,11 +148,14 @@ class Binop(Func):
             return self.f(a,z)
         return RightOp(opz)
 
-class OrFunc(Func):
-    pass
+class RorFunc(Func):
+    def __ror__(self, other):
+        return self(other)
 
 class F(Func):
     pass
+
+p=RorFunc(print)
 
 add=Binop(operator.add)
 sub=Binop(operator.sub)
@@ -294,7 +295,7 @@ swapargs=permargs(1,0)
 # >>> 
 # >>> 
 # >>> method.join
-# functools.partial(<function callmethod at 0xb64e9c90>, 'join')
+# functools.partial(<function callmethod at 0xb64dacd8>, 'join')
 # >>> method.join(',','abc')
 # 'a,b,c'
 # >>> 
@@ -304,7 +305,7 @@ swapargs=permargs(1,0)
 # >>> ap.abc
 # abc
 # >>> pairs('abcdefg')
-# <generator object windows at 0xb64e1f30>
+# <generator object windows at 0xb64ccf30>
 # >>> list(_)
 # [('a', 'b'), ('b', 'c'), ('c', 'd'), ('d', 'e'), ('e', 'f'), ('f', 'g')]
 # >>> 
@@ -330,14 +331,14 @@ swapargs=permargs(1,0)
 # >>> unstar(isinstance)(swap(int, 3))
 # True
 # >>> partial(compose(swap,unstar(isinstance)),int)
-# functools.partial(<function compose.<locals>.compose at 0xb649fa50>, functools.partial(<function star.<locals>.star at 0xb649f9c0>, <function perm.<locals>.perm at 0xb649f978>), functools.partial(<function apply at 0xb64e9e40>, <built-in function isinstance>), <class 'int'>)
+# functools.partial(<function compose.<locals>.compose at 0xb6491b28>, functools.partial(<function star.<locals>.star at 0xb6491a98>, <function perm.<locals>.perm at 0xb6491a50>), functools.partial(<function apply at 0xb64dae88>, <built-in function isinstance>), <class 'int'>)
 # >>> _(9),_(True),_('aa'),_((1,2))
 # (True, True, False, False)
 # >>> 
 # >>> 
 # >>> 
 # >>> partial(compose(swap,partial(apply,isinstance)),int)
-# functools.partial(<function compose.<locals>.compose at 0xb64e94f8>, functools.partial(<function star.<locals>.star at 0xb649f9c0>, <function perm.<locals>.perm at 0xb649f978>), functools.partial(<function apply at 0xb64e9e40>, <built-in function isinstance>), <class 'int'>)
+# functools.partial(<function compose.<locals>.compose at 0xb64da4f8>, functools.partial(<function star.<locals>.star at 0xb6491a98>, <function perm.<locals>.perm at 0xb6491a50>), functools.partial(<function apply at 0xb64dae88>, <built-in function isinstance>), <class 'int'>)
 # >>> _('a'),_(3)
 # (False, True)
 # >>> 
@@ -393,13 +394,15 @@ swapargs=permargs(1,0)
 # >>> callable(F)
 # True
 # >>> F(list)@F(map)
-# Func(functools.partial(<function compose.<locals>.compose at 0xb6512198>, <class 'list'>, <class 'map'>))
+# Func(functools.partial(<function compose.<locals>.compose at 0xb64da228>, <class 'list'>, <class 'map'>))
 # >>> F(list)
 # F(<class 'list'>)
 # >>> type(_)
 # <class 'func.F'>
 # >>> Dict['a':'b']|I
-# Func(functools.partial(<function orr at 0xb6512f60>, <class 'func.Lookup'>['a': 'b'], <function I at 0xb6512858>))
+# Func(functools.partial(<function orr at 0xb64dafa8>, <class 'func.Lookup'>['a': 'b'], <function I at 0xb64da8a0>))
 # >>> p(_('c'),_('a'))
 # None b
+# >>> 1|p
+# 1
 # >>> 
