@@ -60,8 +60,8 @@ class Row(list):
         return Row(redparts(f,self))
     def __str__(self):
         return ' '.join(map(str,self))
-    def repr(self):
-        # disable __repr__ for now
+    def __repr__(self):
+        return ' '.join(map(repr,self))
         return f'{type(self).__name__}({super().__repr__()})'
 
 # >>> from table import *
@@ -382,30 +382,30 @@ class Table:
 # >>> 
 # >>> r=Row([1,2,3])
 # >>> r
-# Row([1, 2, 3])
+# 1 2 3
 # >>> r@functools.partial(operator.add,1)
-# Row([2, 3, 4])
+# 2 3 4
 # >>> from parle.sym import E
 # >>> dir(E)
 # ['__add__', '__and__', '__call__', '__class__', '__contains__', '__delattr__', '__dict__', '__dir__', '__doc__', '__eq__', '__floordiv__', '__format__', '__ge__', '__getattribute__', '__getitem__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__invert__', '__le__', '__lshift__', '__lt__', '__matmul__', '__mod__', '__module__', '__mul__', '__ne__', '__neg__', '__new__', '__or__', '__pos__', '__pow__', '__reduce__', '__reduce_ex__', '__repr__', '__rshift__', '__setattr__', '__sizeof__', '__str__', '__sub__', '__subclasshook__', '__truediv__', '__weakref__', '__xor__', 'a1', 'a2', 'args', 'exprs', 'lhs', 'op', 'rhs']
 # >>> E(2)
 # E(2)
 # >>> E(1)+E(r)
-# E('+', E(1), E(Row([1, 2, 3])))
+# E('+', E(1), E(1 2 3))
 # >>> def x(n): return functools.partial(operator.mul,n)
 # ... 
 # >>> r@x(3)
-# Row([3, 6, 9])
+# 3 6 9
 # >>> 
 # >>> from parle.func import *
 # >>> f=Dict[1:2, 3:4]|K(-1)
 # >>> Row([1,2,3,4])@f
-# Row([2, None, 4, None])
+# 2 None 4 None
 # >>> 
 # >>> operator.add/Row([1,2,3,4,5])
 # 15
 # >>> 1/Row([1,2,3,4,5])
-# Row([1.0, 0.5, 0.3333333333333333, 0.25, 0.2])
+# 1.0 0.5 0.3333333333333333 0.25 0.2
 # >>> 
 # >>> Func
 # <class 'parle.func.Func'>
@@ -413,42 +413,40 @@ class Table:
 # True
 # >>> Func(partial(operator.add,1))(2)
 # 3
-# >>> from search import span
-# <console>:1: ModuleNotFoundError: No module named 'search'
 # >>> operator.add/Row(span(10))
 # <console>:1: NameError: name 'span' is not defined
 # >>> 
 # >>> Row[12,]
-# Row([12])
+# 12
 # >>> Row[1,2,3,4,5]
-# Row([1, 2, 3, 4, 5])
+# 1 2 3 4 5
 # >>> Row([[1,2]])
-# Row([[1, 2]])
+# [1, 2]
 # >>> 
 # >>> gi=GetItem(I)
 # >>> gi[1:10]
 # slice(1, 10, None)
 # >>> 
 # >>> operator.add//Row[1000,1,2,3,4]
-# Row([1000, 1001, 1003, 1006, 1010])
+# 1000 1001 1003 1006 1010
 # >>> 
 # >>> Row[range(10)]@(Dict[2:3,5:7,4:13]|I)
-# Row([None, None, 3, None, 13, 7, None, None, None, None])
+# None None 3 None 13 7 None None None None
 # >>> sub=Binop(operator.sub)
 # >>> 
 # >>> Row([100,200,300])
-# Row([100, 200, 300])
+# 100 200 300
 # >>> 
 # >>> 10@sub@2
 # 8
 # >>> 
 # >>> unstar(range)
-# functools.partial(<function apply at 0xb63840c0>, <class 'range'>)
+# functools.partial(<function apply at 0xb63661e0>, <class 'range'>)
 # >>> _((1,2))
 # range(1, 2)
 # >>> 
 # >>> Row[1,23]
-# Row([1, 23])
+# 1 23
 # >>> 
 # >>> 
 # >>> 
