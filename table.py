@@ -60,16 +60,17 @@ class Row(list):
         return Row(redparts(f,self))
     def __str__(self):
         return ' '.join(map(str,self))
-    def __repr__(self):
+    def repr(self):
+        # disable __repr__ for now
         return f'{type(self).__name__}({super().__repr__()})'
 
 # >>> from table import *
 # >>> Row([1,2,3])
-# Row([1, 2, 3])
+# 1 2 3
 # >>> Row[1,2,3]
-# Row([1, 2, 3])
+# 1 2 3
 # >>> Row[1,]
-# Row([1])
+# 1
 # >>> 
 
 class Index:
