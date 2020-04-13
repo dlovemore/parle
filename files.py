@@ -28,9 +28,13 @@ class File:
     def text(self, value):
         self.path.write_text(value)
     @property
-    def lines(self):
+    def rawlines(self):
         with open(self.path) as f:
             return f.readlines()
+    @property
+    def lines(self):
+        with open(self.path) as f:
+            return lmap(meth.rstrip('\n'),f.readlines())
     @lines.setter
     def lines(self, ls):
         ls=[ensurenl(l) for l in ls]
@@ -75,27 +79,29 @@ class FileSel:
 # >>> f.text
 # 'Good day.\nAnother day\n'
 # >>> f.lines
-# ['Good day.\n', 'Another day\n']
+# ['Good day.', 'Another day']
 # >>> print(s('day','Day')(f))
 # t
 # >>> File('u').text = 'A very good time was had by all'
 # >>> p=print
 # >>> cwd().glob('?')
-# Row([File('/home/pi/python/parle/u'), File('/home/pi/python/parle/t')])
+# u t
 # >>> p(_)
 # u t
 # >>> _@s(r'[gG]ood','GOOD')
-# Row([File('/home/pi/python/parle/u'), File('/home/pi/python/parle/t')])
+# u t
 # >>> _@prop.text
-# Row(['A very GOOD time was had by all', 'GOOD Day.\nAnother Day\n'])
+# A very GOOD time was had by all GOOD Day.
+# Another Day
+# 
 # >>> glob('?')@prop.s
-# Row([<files.Selector object at 0xb6473f30>, <files.Selector object at 0xb6473eb0>])
+# <files.Selector object at 0xb64c7f90> <files.Selector object at 0xb64c7f10>
 # >>> _/'GOOD'
-# Row([u:GOOD, t:GOOD])
+# u:GOOD t:GOOD
 # >>> _/'good'
-# Row([File('/home/pi/python/parle/u'), File('/home/pi/python/parle/t')])
+# u t
 # >>> _@s('^g','G')
-# Row([File('/home/pi/python/parle/u'), File('/home/pi/python/parle/t')])
+# u t
 # >>> 
 # >>> 
 # >>> 
@@ -112,14 +118,27 @@ class FileSel:
 # >>> 
 # >>> 
 # >>> f.s
-# <files.Selector object at 0xb6473fd0>
+# <files.Selector object at 0xb64c7fb0>
 # >>> f.s
-# <files.Selector object at 0xb6473f50>
+# <files.Selector object at 0xb63c5110>
 # >>> f.s/'Good'/'Very good'
 # File('t')
 # >>> f.lines+=['The time','ends']
+# >>> l=f.lines
+# >>> l[2:3]=['1','2','3']
+# >>> l
+# ['Very good Day.', 'Another Day', '1', '2', '3', 'ends']
+# >>> f.lines=l
+# >>> 
+# >>> 
+# >>> 
+# >>> 
+# >>> 
+# >>> f.lines
+# ['Very good Day.', 'Another Day', '1', '2', '3', 'ends']
+# >>> 
 # >>> f.text
-# 'Very good Day.\nAnother Day\nThe time\nends\n'
+# 'Very good Day.\nAnother Day\n1\n2\n3\nends\n'
 # >>> f.s/r'^.*other day\nThe.*$'
 # t:
 # >>> 
@@ -127,12 +146,12 @@ class FileSel:
 # >>> HOME().path
 # PosixPath('/home/pi')
 # >>> (HOME()/'github.com').glob('*')
-# <generator object Path.glob at 0xb643fbf0>
+# <generator object Path.glob at 0xb6493c70>
 # >>> list(_)
 # [PosixPath('/home/pi/github.com/dlovemore')]
 # >>> 
 # >>> Path.glob
-# <function Path.glob at 0xb6367f60>
+# <function Path.glob at 0xb63be078>
 # >>> import auto
 # >>> auto.os.listdir()
 # ['__init__.py', '.git', 'fun.py', 't.html', 'funtest.py', 'save.py', 'func.py', 'htmldraw.py', '.gitignore', 'table.py', 'mint.py', 'primes.py', 'data.py', '__pycache__', 'files.py', 'u', '.files.py.swp', 't', 'sym.py', 'parse.py']
@@ -141,18 +160,18 @@ class FileSel:
 # >>> cwd()
 # File('/home/pi/python/parle')
 # >>> prop.text(f)
-# 'Very good Day.\nAnother Day\nThe time\nends\n'
+# 'Very good Day.\nAnother Day\n1\n2\n3\nends\n'
 # >>> text=Func(prop.text)|K('')
 # >>> text(cwd())
 # ''
 # >>> text(f)
-# 'Very good Day.\nAnother Day\nThe time\nends\n'
+# 'Very good Day.\nAnother Day\n1\n2\n3\nends\n'
 # >>> cwd().glob('*')
-# Row([File('/home/dl/github.com/dlovemore/parle/.gitignore'), File('/home/dl/github.com/dlovemore/parle/.git'), File('/home/dl/github.com/dlovemore/parle/htmldraw.py'), File('/home/dl/github.com/dlovemore/parle/u'), File('/home/dl/github.com/dlovemore/parle/__pycache__'), File('/home/dl/github.com/dlovemore/parle/primes.py'), File('/home/dl/github.com/dlovemore/parle/mint.py'), File('/home/dl/github.com/dlovemore/parle/__init__.py'), File('/home/dl/github.com/dlovemore/parle/func.py'), File('/home/dl/github.com/dlovemore/parle/.files.py.swp'), File('/home/dl/github.com/dlovemore/parle/files.py'), File('/home/dl/github.com/dlovemore/parle/fun.py'), File('/home/dl/github.com/dlovemore/parle/t'), File('/home/dl/github.com/dlovemore/parle/table.py'), File('/home/dl/github.com/dlovemore/parle/sym.py'), File('/home/dl/github.com/dlovemore/parle/save.py'), File('/home/dl/github.com/dlovemore/parle/funtest.py'), File('/home/dl/github.com/dlovemore/parle/sand'), File('/home/dl/github.com/dlovemore/parle/data.py'), File('/home/dl/github.com/dlovemore/parle/__init__.pyc')])
+# __init__.py .git fun.py t.html funtest.py save.py func.py htmldraw.py .gitignore table.py mint.py primes.py data.py __pycache__ files.py u .files.py.swp t sym.py parse.py
 # >>> 
 # >>> 
 # >>> _@text@len
-# Row([20, 0, 2049, 31, 0, 7689, 4346, 248, 18415, 0, 4689, 1145, 41, 14058, 7414, 4076, 818, 0, 16109, 0])
+# 248 0 1145 1435 818 4076 9464 3326 27 14600 4346 7535 16109 0 4475 31 0 38 7414 7339
 # >>> 
 # >>> 
 # >>> 
