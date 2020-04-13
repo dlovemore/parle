@@ -131,10 +131,10 @@ def lookupas(f,n):
 
 φ=(1+math.sqrt(5))/2
 ψ=1-φ
-def F(n,f0=0,f1=1):
+def Fn(n,f0=0,f1=1):
     return int(((f1-f0*ψ)*φ**n+(f0*φ-f1)*ψ**n)/(φ-ψ)+0.5)
 
-Fibonacci=F
+Fibonacci=Fn
 
 def base(b,x):
     def digits(x):
@@ -209,13 +209,9 @@ def pn(n):
 # >>> sof(496)//2
 # 496
 # >>> bonacci(2)
-# Traceback (most recent call last):
-#   File "<console>", line 1, in <module>
-# NameError: name 'bonacci' is not defined
+# <console>:1: NameError: name 'bonacci' is not defined
 # >>> bonacci(11)
-# Traceback (most recent call last):
-#   File "<console>", line 1, in <module>
-# NameError: name 'bonacci' is not defined
+# <console>:1: NameError: name 'bonacci' is not defined
 # >>> 
 # >>> sof(66)
 # 144
@@ -353,14 +349,15 @@ def pn(n):
 # >>> b.chapter(607)
 # Psalms 129:1-8 (8 verses)
 # >>> p(_)
-# Psalms 129:1 Many a time have they afflicted me from my youth, may Israel now say:
-# Psalms 129:2 Many a time have they afflicted me from my youth: yet they have not prevailed against me.
-# Psalms 129:3 The plowers plowed upon my back: they made long their furrows.
-# Psalms 129:4 The LORD is righteous: he hath cut asunder the cords of the wicked.
-# Psalms 129:5 Let them all be confounded and turned back that hate Zion.
-# Psalms 129:6 Let them be as the grass upon the housetops, which withereth afore it groweth up:
-# Psalms 129:7 Wherewith the mower filleth not his hand; nor he that bindeth sheaves his bosom.
-# Psalms 129:8 Neither do they which go by say, The blessing of the LORD be upon you: we bless you in the name of the LORD.
+# Psalms 129
+# 1 Many a time have they afflicted me from my youth, may Israel now say:
+# 2 Many a time have they afflicted me from my youth: yet they have not prevailed against me.
+# 3 The plowers plowed upon my back: they made long their furrows.
+# 4 The LORD is righteous: he hath cut asunder the cords of the wicked.
+# 5 Let them all be confounded and turned back that hate Zion.
+# 6 Let them be as the grass upon the housetops, which withereth afore it groweth up:
+# 7 Wherewith the mower filleth not his hand; nor he that bindeth sheaves his bosom.
+# 8 Neither do they which go by say, The blessing of the LORD be upon you: we bless you in the name of the LORD.
 # >>> 
 # >>> 
 # >>> 
@@ -381,7 +378,7 @@ def pn(n):
 # >>> 22-18
 # 4
 # >>> F(10)
-# 55
+# F(<function const.<locals>.const at 0xb64c8c48>)
 # >>> 
 # >>> som(6)
 # 6
