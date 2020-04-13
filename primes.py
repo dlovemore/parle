@@ -165,7 +165,7 @@ def npp(p): return lookupas(pp,p)
 def ntri(p): return lookupas(tri,p)
 def nsq(p): return lookupas((lambda x: x*x),p)
 def ncube(p): return lookupas((lambda x: x**3),p)
-def nF(p): return lookupas(F, p)
+def nF(p): return lookupas(Fibonacci, p)
 def nsof(p): return [i for i in range(p) if sof(i)==p]
 
 def pn(n):
@@ -333,7 +333,7 @@ def pn(n):
 # 1123
 # >>> rebase(12, 1123)
 # 1899
-# >>> [F(i) for i in range(32)]
+# >>> [Fn(i) for i in range(32)]
 # [0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597, 2584, 4181, 6765, 10946, 17711, 28657, 46368, 75025, 121393, 196418, 317811, 514229, 832040, 1346269]
 # >>> 789629/710647
 # 1.1111409743515417
@@ -341,7 +341,7 @@ def pn(n):
 # [311, 2539]
 # >>> nF(710647)
 # (29, 514229, -196418, 710647, 121393, 832040, 30)
-# >>> F(28)/.9
+# >>> Fn(28)/.9
 # 353123.3333333333
 # >>> 29-7
 # 22
@@ -377,8 +377,8 @@ def pn(n):
 # 22
 # >>> 22-18
 # 4
-# >>> F(10)
-# F(<function const.<locals>.const at 0xb64c8c48>)
+# >>> Fn(10)
+# 55
 # >>> 
 # >>> som(6)
 # 6
