@@ -10,6 +10,10 @@ def prod(*l):
         k*=x
     return k
 
+def span(a,b=None,step=1):
+    if isinstance(a,slice): a,b,step=a
+    if b is None: a,b=1,a
+    return range(1,a+1,step) if b is None else range(a,b+1,step)
 
 _primes=[2,3]
 def primes(n):
