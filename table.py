@@ -64,6 +64,8 @@ class Row(list):
         return ' '.join(map(repr,self))
         return f'{type(self).__name__}({super().__repr__()})'
 
+R=Row
+
 # >>> from table import *
 # >>> Row([1,2,3])
 # 1 2 3

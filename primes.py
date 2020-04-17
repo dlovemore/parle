@@ -1,19 +1,11 @@
 import collections
-import operator
 import itertools
-import math
-from bisect import bisect_right
 
 def prod(*l):
     k=1
     for x in l:
         k*=x
     return k
-
-def span(a,b=None,step=1):
-    if isinstance(a,slice): a,b,step=a
-    if b is None: a,b=1,a
-    return range(1,a+1,step) if b is None else range(a,b+1,step)
 
 _primes=[2,3]
 def primes(n):
@@ -133,7 +125,7 @@ def lookupas(f,n):
     if f(j)==n: return j
     return (i,f(i),f(i)-n,n,f(j)-n,f(j),j)
 
-φ=(1+math.sqrt(5))/2
+φ=(1+5**.5)/2
 ψ=1-φ
 def Fn(n,f0=0,f1=1):
     return int(((f1-f0*ψ)*φ**n+(f0*φ-f1)*ψ**n)/(φ-ψ)+0.5)
@@ -396,9 +388,9 @@ def pn(n):
 # 6
 # >>> issublime(12)
 # True
-# >>> any((issublime(i) for i in span(13,1000)))
+# >>> any((issublime(i) for i in range(13,1000)))
 # False
-# >>> any((issublime(i) for i in span(11)))
+# >>> any((issublime(i) for i in range(1,12)))
 # False
 # >>> 
 # >>> 

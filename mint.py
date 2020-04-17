@@ -97,10 +97,9 @@ class sint(int):
 # 4
 # >>> mint(3)
 # mint(3)
-# >>> min(3)+4
-# Traceback (most recent call last):
-#   File "<console>", line 1, in <module>
-# TypeError: 'int' object is not iterable
+# >>> mint(3)+4
+# mint(7)
+# >>> 
 # >>> print(type(_))
 # <class 'mint.mint'>
 # >>> _/3,_//3
