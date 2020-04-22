@@ -1,24 +1,48 @@
 from func import *
 
 class DelegateBase:
-    def __init__(self,o):
-        self.o=o
-    def f(self): return super(DelegateBase,self).o
+    attrss=dict()
+    def __init__(self,attrs=None):
+        DelegateBase.attrss[self]=dict()
+    def __getattribute__(self, name):
+        attrs=DelegateBase.attrss[self]
+        return attrs[name]
+    def __setattribute__(self, name, value):
+        attrs=DelegateBase.attrss[self]
+        attrs[name] = value
 
-class Delegate(DelegateBase):
-    def __init__(self,o):
-        super().__init__(o)
+class Delegate(DelegateBase,int):
     def __getattribute__(self, name):
         #if name=='o': return object.__getattribute__(self)
         s=super(DelegateBase,self)
-        # r=s.__getattribute__(s,name)
-        return object.__getattribute__(self,'f')()
+        return s.__getattribute__(name)
 
 # >>> from lift import *
-# >>> DelegateBase(dict)
-# <lift.DelegateBase object at 0xb66d85b0>
+# >>> d=Delegate()
+# >>> d
+# 0
+# >>> 
+# >>> _.o =4
 # >>> _.o
-# <class 'dict'>
+# 4
+# >>> d=Delegate(3)
+# >>> d.__pow__(2)
+# 9
+# >>> d**2
+# 9
+# >>> d.__pow__=op.add
+# >>> d**2
+# 9
+# >>> d.a=op.add
+# >>> d.a(5)
+# <console>:1: TypeError: add expected 2 arguments, got 1
+# /home/pi/python/parle/func.py:10: TypeError: add expected 2 arguments, got 1
+#     self=Func(<built-in function add>)
+#     kwargs={}
+#     args=(5,)
+# >>> 
+# >>> 
+# >>> 
 # >>> d=Delegate(dict)
 # >>> d
 # <lift.Delegate object at 0xb66d85b0>

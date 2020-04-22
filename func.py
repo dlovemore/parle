@@ -1,50 +1,66 @@
 import functools
-from functools import reduce
-from operator import itemgetter
 import operator
 
 class Func:
-    def __init__(self,f):
-        self.f=isinstance(f,Func) and f.f or callable(f) and f
-    def __contains__(self, k):
+    def __init__(self,f,name=None):
+        self.f=fun(f)
+        self.__name__=name or fname(f)
+    def __xcontains__(self, k):
         return k in self.f
     def __call__(self,*args,**kwargs):
         return self.f(*args,**kwargs)
-    def __rmatmul__(self,other):
-        return rowtype(other)(map(self,other))
-    def __matmul__(self,other):
-        return isinstance(other, Func) and Func(compose(self.f,other.f)) or NotImplemented
-    def __rmul__(self,other):
-        return isinstance(other, Func) and Func(compose(other.f,self.f)) or self(other)
-    def __mul__(self,other):
-        return isinstance(other, Func) and Func(compose(self.f,other.f)) or NotImplemented
-    def __rpow__(self,other):
-        return self(*other)
-    def __pow__(self,other):
-        return isinstance(other, Func) and Func(compose(self.f,star(other.f))) or NotImplemented
+    def __rmatmul__(self,left):
+        return dmap(self,left)
+    def __matmul__(self,right):
+        return Fun(right) and compose(self,partial(dmap,right)) or NotImplemented
+    def __rmul__(self,left):
+        return Fun(left) and compose(left,self) or self(left)
+    def __mul__(self,right):
+        return Fun(right) and compose(self,right) or NotImplemented
+    def __rpow__(self,left):
+        return Fun(left) and compose(left, star(self)) or self(*left)
+    def __pow__(self,right):
+        return Fun(right) and compose(self,star(right)) or NotImplemented
     def __rtruediv__(self, other):
         return rowtype(other)(x for x in other if self(x))
-    def __ror__(self,f):
-        return Func(orr(f,self.f))
-    def __or__(self,f):
-        return Func(orr(self.f,f))
+    def __rand__(self,l):
+        return Fun(l) and then(l,self) or self(l)
+    def __ror__(self,l):
+        return Fun(l) and orr(l,self) or NotImplemented
+    def __or__(self,r):
+        return Fun(r) and orr(self,r) or NotImplemented
     def __add__(self, other):
         if isinstance(other, Func):
             return FuncRow((self.f,other.f))
         return NotImplemented
+    def __str__(self):
+        return f'{self.__name__}'
     def __repr__(self):
-        return f'{type(self).__name__}({self.f!r})'
+        return f'{type(self).__name__}({self.__name__})'
+
+def fun(f):
+    if isinstance(f,Func):
+        while isinstance(f,Func):
+            f=f.f
+        return f
+    else:
+        return callable(f) and f
+
+def Fun(f): return fun(f) and Func(f)
+
+def fname(f): return hasattr(f,'__name__') and f.__name__ or str(f)
 
 class FuncRow(Func):
     def __init__(self, fs):
         self.fs=tuple(fs)
+        self.f=self.__call__
     def __call__(self, other,**kwargs):
-        return tuple(f(other[i],**kwargs) for i,f in enumerate(self.fs))
-    def __rmul__(self, other):
-        return tuple(f(other) for f in self.fs)
-    def __radd__(self, other):
-        if isinstance(other, Func):
-            return FuncRow(((other.f,)+self.fs))
+        return tuple(f(other,**kwargs) for f in self.fs)
+    def __rmul__(self, left):
+        return tuple(f(left) for f in self.fs)
+    def __radd__(self, left):
+        if isinstance(left, Func):
+            return FuncRow(((left.f,)+self.fs))
         return NotImplemented
     def __add__(self, other):
         if isinstance(other, FuncRow):
@@ -54,6 +70,20 @@ class FuncRow(Func):
         return NotImplemented
     def __repr__(self):
         return f'{type(self).__name__}({self.fs!r})'
+
+def dmap(f,l):
+    f=fun(f)
+    return rowtype(l)(map(f,l))
+
+class DataRow(tuple):
+    def __mul__(self,right):
+        return isinstance(right,Func) and NotImplemented or self*Func(right)
+    def __pow__(self,right):
+        return isinstance(right,Func) and NotImplemented or self**Func(right)
+    def __add__(self,right):
+        return isinstance(right,Func) and NotImplemented or self+Func(right)
+    def __truediv(self,right):
+        return isinstance(right,Func) and NotImplemented or self/Func(right)
 
 class Attr:
     def __init__(self, f):
@@ -72,6 +102,9 @@ class GetItem:
         return self.f(k)
     def __getitem__(self, k):
         return self.f(k)
+
+def getitem(k):
+    return meth.__getitem__(k)
 
 @Func
 def I(x): return x
@@ -93,37 +126,49 @@ class Unique:
 
 @Func
 def partial(f,*args,**kwargs):
+    name=fname(f)
+    f=fun(f)
+    return F(functools.partial(f,*args,**kwargs),name=name)
+
+@Func
+def compose(f,g):
     while isinstance(f,Func): f=f.f
-    return F(functools.partial(f,*args,**kwargs))
+    while isinstance(g,Func): g=g.f
+    @Func
+    def compose(*args,**kwargs):
+        nonlocal f,g
+        return g(f(*args,**kwargs))
+    return compose
+
+reduce=Func(functools.reduce)
 
 def getprop(name,object): return getattr(object,name)
 
 @Attr
 def prop(name): return partial(getprop,name)
 
-q=Attr(str)
-
 def aslist(f):
     def tolist(f,*args):
         return list(f(*args))
     return partial(tolist,f)
 
-def compose(f,g):
-    def compose(*args,**kwargs):
-        nonlocal f,g
-        return g(f(*args,**kwargs))
-    return compose
-
+@Func
 def apply(f, l,**kwargs):
     return f(*l, **kwargs)
 
+@Func
 def star(f):
+    f=fun(f)
+    @Func
     def star(args,**kwargs):
         nonlocal f
         return f(*args,**kwargs)
     return star
 
+@Func
 def orr(f,g):
+    f,g=fun(f),fun(g)
+    @Func
     def orr(*args,**kwargs):
         nonlocal f,g
         try:
@@ -171,20 +216,16 @@ class Binop(Func):
         def aop(z):
             nonlocal a
             return self.f(a,z)
-        return LeftOp(aop)
     def __matmul__(self,z):
+        return LeftOp(aop)
         def opz(a):
             nonlocal z
             return self.f(a,z)
         return RightOp(opz)
 
-class RorFunc(Func):
-    def __ror__(self, other):
-        return self(other)
-
 F=Func(Func)
+FR=Func(FuncRow)
 K=const
-I=F(I)
 
 def callmethod(name,object,*args,**kwargs): return getattr(object,name)(*args,**kwargs)
 
@@ -213,6 +254,7 @@ def unstar(f):
     return partial(unstar,f)
 
 l=unstar(list)
+L=Func(list)
 lmap=aslist(map)
 q=Attr(str)
 
@@ -225,8 +267,9 @@ def aslist(f):
         return list(f(*args))
     return partial(tolist,f)
 
+X=GetItem(meth.__getitem__)
 
-p=RorFunc(print)
+p=Func(print)
 
 op=Attr(partial(getattr,operator)*F)
 li=op.itemgetter
@@ -341,6 +384,12 @@ def fggf(fg):
 swap=unstar(perm(1,0))
 swapargs=permargs(1,0)
 
+class qstr(str):
+    def __getattr__(self,w):
+        return qstr(' '.join((self,w)))
+
+q=Attr(qstr)
+
 # >>> from auto import *
 # >>> from func import *
 # >>> 
@@ -348,11 +397,11 @@ swapargs=permargs(1,0)
 # >>> 
 # >>> 
 # >>> method.join
-# Func(functools.partial(<function callmethod at 0xb6452228>, 'join'))
+# Func(callmethod)
 # >>> method.join(',','abc')
 # 'a,b,c'
 # >>> meth.startswith('a')
-# Func(<function meth.<locals>.callmeth.<locals>.callmeth at 0xb6452db0>)
+# Func(callmeth)
 # >>> _('a'),_('b')
 # (True, False)
 # >>> 
@@ -364,7 +413,7 @@ swapargs=permargs(1,0)
 # >>> ap.abc
 # abc
 # >>> pairs('abcdefg')
-# <generator object windows at 0xb64d6f30>
+# <generator object windows at 0xb64f3eb0>
 # >>> list(_)
 # [('a', 'b'), ('b', 'c'), ('c', 'd'), ('d', 'e'), ('e', 'f'), ('f', 'g')]
 # >>> 
@@ -372,7 +421,7 @@ swapargs=permargs(1,0)
 # [1, 2, 3]
 # >>> 
 # >>> F(list)
-# Func(<class 'list'>)
+# Func(list)
 # >>> _([1,2,3])
 # [1, 2, 3]
 # >>> 
@@ -409,14 +458,14 @@ swapargs=permargs(1,0)
 # >>> star(isinstance)(swap(int, 3))
 # True
 # >>> partial(compose(swap,star(isinstance)),int)
-# Func(functools.partial(<function compose.<locals>.compose at 0xb6452e40>, <class 'int'>))
+# Func(compose)
 # >>> _(9),_(True),_('aa'),_((1,2))
 # (True, True, False, False)
 # >>> 
 # >>> 
 # >>> 
 # >>> partial(compose(swap,partial(apply,isinstance)),int)
-# Func(functools.partial(<function compose.<locals>.compose at 0xb67227c8>, <class 'int'>))
+# Func(compose)
 # >>> _('a'),_(3)
 # (False, True)
 # >>> 
@@ -467,8 +516,20 @@ swapargs=permargs(1,0)
 # <class 'tuple'>
 # >>> rowtype(2)
 # <class 'list'>
+# >>> o='abc'
+# >>> isinstance(o, list)
+# False
+# >>> isinstance(o, tuple)
+# False
+# >>> FuncRow
+# <class 'func.FuncRow'>
+# >>> 
+# >>> isinstance(o, FuncRow)
+# False
+# >>> isinstance(o, list) or isinstance(o, tuple) or isinstance(o, FuncRow)
+# False
 # >>> rowtype('abc')
-# Func(<function compose.<locals>.compose at 0xb6452540>)
+# Func(compose)
 # >>> rowtype('abc')('def')
 # 'def'
 # >>> 
@@ -489,7 +550,7 @@ swapargs=permargs(1,0)
 # >>> aslist(map)(op.neg,[1,2,3])
 # [-1, -2, -3]
 # >>> op.neg
-# Func(<built-in function neg>)
+# Func(neg)
 # >>> 
 # >>> [1,2,3]@op.neg
 # [-1, -2, -3]
@@ -497,25 +558,25 @@ swapargs=permargs(1,0)
 # >>> callable(F)
 # True
 # >>> F(list)@F(map)
-# Func(<function compose.<locals>.compose at 0xb6452db0>)
+# Func(compose)
 # >>> F(list)
-# Func(<class 'list'>)
+# Func(list)
 # >>> type(_)
 # <class 'func.Func'>
 # >>> (I|l)(1,2,3)
 # [1, 2, 3]
 # >>> Dict['a':'b']|I
-# Func(<function orr.<locals>.orr at 0xb6452db0>)
+# Func(orr)
 # >>> 
 # >>> p(_('c'),_('a'))
 # c b
 # >>> 1|p
-# 1
+# <console>:1: TypeError: unsupported operand type(s) for |: 'int' and 'Func'
 # >>> 
 # >>> span(3)*F(sum)
 # 6
 # >>> 3|I
-# Func(<function orr.<locals>.orr at 0xb6452db0>)
+# <console>:1: TypeError: unsupported operand type(s) for |: 'int' and 'Func'
 # >>> (''.join|I)(['a','b','d'])
 # 'abd'
 # >>> (''.join|I)(['a','b','d',1])
@@ -526,7 +587,7 @@ swapargs=permargs(1,0)
 # ['b', 'c', 'd']
 # >>> 
 # >>> (list*(''.join|I))(['a','b','d'])
-# ['a', 'b', 'd']
+# 'abd'
 # >>> trystr('abc')
 # 'abc'
 # >>> 
@@ -536,13 +597,13 @@ swapargs=permargs(1,0)
 # ['1']
 # >>> 
 # >>> partial(l,0)
-# Func(functools.partial(<function unstar.<locals>.unstar at 0xb6452468>, <class 'list'>, 0))
+# Func(unstar)
 # >>> partial(partial(partial(l,0),1),2)
-# Func(functools.partial(<function unstar.<locals>.unstar at 0xb6452468>, <class 'list'>, 0, 1, 2))
+# Func(unstar)
 # >>> partial(partial(partial(partial(l,0),1),2),3)
-# Func(functools.partial(<function unstar.<locals>.unstar at 0xb6452468>, <class 'list'>, 0, 1, 2, 3))
+# Func(unstar)
 # >>> dir(_)|p
-# ['__add__', '__call__', '__class__', '__contains__', '__delattr__', '__dict__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__matmul__', '__module__', '__mul__', '__ne__', '__new__', '__or__', '__pow__', '__reduce__', '__reduce_ex__', '__repr__', '__rmatmul__', '__rmul__', '__ror__', '__rpow__', '__rtruediv__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__', 'f']
+# <console>:1: TypeError: unsupported operand type(s) for |: 'list' and 'Func'
 # >>> _.f,args,_.func
 # <console>:1: NameError: name 'args' is not defined
 # >>> 
@@ -569,22 +630,88 @@ swapargs=permargs(1,0)
 # >>> type(functools.partial(I))
 # <class 'functools.partial'>
 # >>> I
-# Func(<function I at 0xb64e4588>)
+# Func(I)
 # >>> _(3)
 # 3
 # >>> K
-# Func(<function const at 0xb64e4db0>)
+# Func(const)
 # >>> 
 # >>> K(9)
-# Func(<function const.<locals>.const at 0xb6465078>)
+# Func(const)
 # >>> _(9)
 # 9
 # >>> 
 # >>> 
 # >>> I+K(9)
-# FuncRow((<function I at 0xb64e4588>, <function const.<locals>.const at 0xb6465078>))
+# FuncRow((<function I at 0xb6479198>, <function const.<locals>.const at 0xb648b300>))
 # >>> 3*_
 # (3, 9)
 # >>> meth.add
-# Func(<function meth.<locals>.callmeth at 0xb64e4198>)
+# Func(callmeth)
+# >>> m=Attr(((K(callmethod)+I)**partial*(I+K(I)))**partial)
+# >>> 
+# >>> 'join'
+# 'join'
+# >>> _*(K(callmethod)+I)
+# (<function callmethod at 0xb6479618>, 'join')
+# >>> _**partial
+# Func(callmethod)
+# >>> _*(I*K+K(I))
+# (Func(const), Func(I))
+# >>> _*FuncRow
+# <console>:1: TypeError: can't multiply sequence by non-int of type 'type'
+# >>> (',')*_
+# <console>:1: TypeError: can't multiply sequence by non-int of type 'tuple'
+# >>> 
+# >>> 
+# >>> 
+# >>> _**apply
+# <console>:1: TypeError: Func object argument after * must be an iterable, not Func
+# /home/pi/python/parle/func.py:21: TypeError: Func object argument after * must be an iterable, not Func
+#     self=apply
+#     left=(Func(const), Func(I))
+# /home/pi/python/parle/func.py:11: TypeError: Func object argument after * must be an iterable, not Func
+#     self=apply
+#     args=(Func(const), Func(I))
+#     kwargs={}
+# /home/pi/python/parle/func.py:155: TypeError: Func object argument after * must be an iterable, not Func
+#     f=const
+#     l=I
+#     kwargs={}
+# >>> 
+# >>> 
+# >>> 
+# >>> (',',)**_
+# <console>:1: TypeError: unsupported operand type(s) for ** or pow(): 'tuple' and 'tuple'
+# >>> 
+# >>> 
+# >>> meth.join(['1','2','3'])(',')
+# '1,2,3'
+# >>> 
+# >>> 
+# >>> 
+# >>> X[3](range(5))
+# 3
+# >>> 
+# >>> q.the.name
+# 'the name'
+# >>> 
+# >>> [1,2]&p
+# [1, 2]
+# >>> 
+# >>> 
+# >>> 
+# >>> 
+# >>> 
+# >>> 
+# >>> 
+# >>> 
+# >>> 
+# >>> 
+# >>> 
+# >>> 
+# >>> 
+# >>> 
+# >>> 
+# >>> 
 # >>> 

@@ -55,6 +55,8 @@ class Row(list):
             return reduce(f,self)
         return self@Func(partial(operator.truediv,f))
     def __truediv__(self, f):
+        if callable(f):
+            return Row([x for x in self if f(x)])
         return Row(map(meth.__truediv__(f), self))
     def __rfloordiv__(self, f):
         return Row(redparts(f,self))
@@ -343,11 +345,11 @@ class Table:
 # [[1, 2, 3], [4, 5, 6]]
 # >>> 
 # >>> p(t(add)(200))
-# <console>:1: NameError: name 'add' is not defined
+# <65>:1: NameError: name 'add' is not defined
 # >>> t
 # Table(range(0, 50),[Index([3,3,3,1,3,3,3,1,3,3,3,1,3,3,3,1,3,3,3,1]), Index([10,20,10,10])])
 # >>> add/t
-# <console>:1: NameError: name 'add' is not defined
+# <67>:1: NameError: name 'add' is not defined
 # >>> p(_)
 # 0 1 2
 # 3 4 5
@@ -402,7 +404,7 @@ class Table:
 # >>> from parle.func import *
 # >>> f=Dict[1:2, 3:4]|K(-1)
 # >>> Row([1,2,3,4])@f
-# 2 None 4 None
+# 2 -1 4 -1
 # >>> 
 # >>> operator.add/Row([1,2,3,4,5])
 # 15
@@ -416,7 +418,7 @@ class Table:
 # >>> Func(partial(operator.add,1))(2)
 # 3
 # >>> operator.add/Row(span(10))
-# <console>:1: NameError: name 'span' is not defined
+# 55
 # >>> 
 # >>> Row[12,]
 # 12
@@ -433,22 +435,32 @@ class Table:
 # 1000 1001 1003 1006 1010
 # >>> 
 # >>> Row[range(10)]@(Dict[2:3,5:7,4:13]|I)
-# None None 3 None 13 7 None None None None
+# 0 1 3 3 13 7 6 7 8 9
 # >>> sub=Binop(operator.sub)
 # >>> 
 # >>> Row([100,200,300])
 # 100 200 300
 # >>> 
 # >>> 10@sub@2
-# 8
+# <112>:1: TypeError: unsupported operand type(s) for @: 'NoneType' and 'int'
 # >>> 
-# >>> unstar(range)
-# functools.partial(<function apply at 0xb63661e0>, <class 'range'>)
+# >>> star(range)
+# Func(star)
 # >>> _((1,2))
 # range(1, 2)
 # >>> 
 # >>> Row[1,23]
 # 1 23
+# >>> Row(span(10))/(lambda x: x%2)
+# 1 3 5 7 9
+# >>> Row(span(10))/(lambda x: x%2==0)
+# 2 4 6 8 10
+# >>> 
+# >>> add/(Row(span(10))/(lambda x: x%2==0))
+# 30
+# >>> add/(Row(span(10))/(lambda x: x%2))
+# 25
+# >>> 
 # >>> 
 # >>> 
 # >>> 
