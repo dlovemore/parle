@@ -2,9 +2,8 @@ import functools
 import operator
 
 class Func:
-    def __init__(self,f,name=None):
+    def __init__(self,f):
         self.f=fun(f)
-        self.__name__=name or fname(f)
     def __xcontains__(self, k):
         return k in self.f
     def __call__(self,*args,**kwargs):
@@ -33,10 +32,8 @@ class Func:
         if isinstance(other, Func):
             return FuncRow((self.f,other.f))
         return NotImplemented
-    def __str__(self):
-        return f'{self.__name__}'
     def __repr__(self):
-        return f'{type(self).__name__}({self.__name__})'
+        return f'{type(self).__name__}({self.f})'
 
 def fun(f):
     if isinstance(f,Func):
@@ -47,8 +44,6 @@ def fun(f):
         return callable(f) and f
 
 def Fun(f): return fun(f) and Func(f)
-
-def fname(f): return hasattr(f,'__name__') and f.__name__ or str(f)
 
 class FuncRow(Func):
     def __init__(self, fs):
@@ -126,9 +121,8 @@ class Unique:
 
 @Func
 def partial(f,*args,**kwargs):
-    name=fname(f)
     f=fun(f)
-    return F(functools.partial(f,*args,**kwargs),name=name)
+    return F(functools.partial(f,*args,**kwargs))
 
 @Func
 def compose(f,g):
@@ -390,6 +384,17 @@ class qstr(str):
 
 q=Attr(qstr)
 
+@I(aslist*F)
+def firstn(n,g):
+    for i,x in enumerate(g):
+        if i==n: break
+        yield x
+
+@Func
+def first(g):
+    for x in g:
+        return x
+
 # >>> from auto import *
 # >>> from func import *
 # >>> 
@@ -397,11 +402,11 @@ q=Attr(qstr)
 # >>> 
 # >>> 
 # >>> method.join
-# Func(callmethod)
+# Func(functools.partial(<function callmethod at 0xb6511a98>, 'join'))
 # >>> method.join(',','abc')
 # 'a,b,c'
 # >>> meth.startswith('a')
-# Func(callmeth)
+# Func(<function meth.<locals>.callmeth.<locals>.callmeth at 0xb6526780>)
 # >>> _('a'),_('b')
 # (True, False)
 # >>> 
@@ -413,7 +418,7 @@ q=Attr(qstr)
 # >>> ap.abc
 # abc
 # >>> pairs('abcdefg')
-# <generator object windows at 0xb64f3eb0>
+# <generator object windows at 0xb6594f70>
 # >>> list(_)
 # [('a', 'b'), ('b', 'c'), ('c', 'd'), ('d', 'e'), ('e', 'f'), ('f', 'g')]
 # >>> 
@@ -421,7 +426,7 @@ q=Attr(qstr)
 # [1, 2, 3]
 # >>> 
 # >>> F(list)
-# Func(list)
+# Func(<class 'list'>)
 # >>> _([1,2,3])
 # [1, 2, 3]
 # >>> 
@@ -458,14 +463,14 @@ q=Attr(qstr)
 # >>> star(isinstance)(swap(int, 3))
 # True
 # >>> partial(compose(swap,star(isinstance)),int)
-# Func(compose)
+# Func(functools.partial(<function compose.<locals>.compose at 0xb6526810>, <class 'int'>))
 # >>> _(9),_(True),_('aa'),_((1,2))
 # (True, True, False, False)
 # >>> 
 # >>> 
 # >>> 
 # >>> partial(compose(swap,partial(apply,isinstance)),int)
-# Func(compose)
+# Func(functools.partial(<function compose.<locals>.compose at 0xb65a4420>, <class 'int'>))
 # >>> _('a'),_(3)
 # (False, True)
 # >>> 
@@ -508,7 +513,7 @@ q=Attr(qstr)
 # >>> p(_(3))
 # -3
 # >>> {1:2}|{3:4}
-# <console>:1: TypeError: unsupported operand type(s) for |: 'dict' and 'dict'
+# <78>:1: TypeError: unsupported operand type(s) for |: 'dict' and 'dict'
 # >>> 
 # >>> rowtype([])
 # <class 'list'>
@@ -529,7 +534,7 @@ q=Attr(qstr)
 # >>> isinstance(o, list) or isinstance(o, tuple) or isinstance(o, FuncRow)
 # False
 # >>> rowtype('abc')
-# Func(compose)
+# Func(<function compose.<locals>.compose at 0xb6511d68>)
 # >>> rowtype('abc')('def')
 # 'def'
 # >>> 
@@ -550,7 +555,7 @@ q=Attr(qstr)
 # >>> aslist(map)(op.neg,[1,2,3])
 # [-1, -2, -3]
 # >>> op.neg
-# Func(neg)
+# Func(<built-in function neg>)
 # >>> 
 # >>> [1,2,3]@op.neg
 # [-1, -2, -3]
@@ -558,25 +563,25 @@ q=Attr(qstr)
 # >>> callable(F)
 # True
 # >>> F(list)@F(map)
-# Func(compose)
+# Func(<function compose.<locals>.compose at 0xb65268e8>)
 # >>> F(list)
-# Func(list)
+# Func(<class 'list'>)
 # >>> type(_)
 # <class 'func.Func'>
 # >>> (I|l)(1,2,3)
 # [1, 2, 3]
 # >>> Dict['a':'b']|I
-# Func(orr)
+# Func(<function orr.<locals>.orr at 0xb65268e8>)
 # >>> 
 # >>> p(_('c'),_('a'))
 # c b
-# >>> 1|p
-# <console>:1: TypeError: unsupported operand type(s) for |: 'int' and 'Func'
+# >>> 1&p
+# 1
 # >>> 
 # >>> span(3)*F(sum)
 # 6
-# >>> 3|I
-# <console>:1: TypeError: unsupported operand type(s) for |: 'int' and 'Func'
+# >>> 3&I
+# 3
 # >>> (''.join|I)(['a','b','d'])
 # 'abd'
 # >>> (''.join|I)(['a','b','d',1])
@@ -597,15 +602,13 @@ q=Attr(qstr)
 # ['1']
 # >>> 
 # >>> partial(l,0)
-# Func(unstar)
+# Func(functools.partial(<function unstar.<locals>.unstar at 0xb6511c90>, <class 'list'>, 0))
 # >>> partial(partial(partial(l,0),1),2)
-# Func(unstar)
+# Func(functools.partial(<function unstar.<locals>.unstar at 0xb6511c90>, <class 'list'>, 0, 1, 2))
 # >>> partial(partial(partial(partial(l,0),1),2),3)
-# Func(unstar)
-# >>> dir(_)|p
-# <console>:1: TypeError: unsupported operand type(s) for |: 'list' and 'Func'
-# >>> _.f,args,_.func
-# <console>:1: NameError: name 'args' is not defined
+# Func(functools.partial(<function unstar.<locals>.unstar at 0xb6511c90>, <class 'list'>, 0, 1, 2, 3))
+# >>> _.f.args
+# (<class 'list'>, 0, 1, 2, 3)
 # >>> 
 # >>> 
 # >>> 
@@ -630,59 +633,63 @@ q=Attr(qstr)
 # >>> type(functools.partial(I))
 # <class 'functools.partial'>
 # >>> I
-# Func(I)
+# Func(<function I at 0xb6511618>)
 # >>> _(3)
 # 3
 # >>> K
-# Func(const)
+# Func(<function const at 0xb6511660>)
 # >>> 
 # >>> K(9)
-# Func(const)
+# Func(<function const.<locals>.const at 0xb6526858>)
 # >>> _(9)
 # 9
 # >>> 
 # >>> 
 # >>> I+K(9)
-# FuncRow((<function I at 0xb6479198>, <function const.<locals>.const at 0xb648b300>))
+# FuncRow((<function I at 0xb6511618>, <function const.<locals>.const at 0xb6526858>))
 # >>> 3*_
 # (3, 9)
 # >>> meth.add
-# Func(callmeth)
+# Func(<function meth.<locals>.callmeth at 0xb65a4468>)
 # >>> m=Attr(((K(callmethod)+I)**partial*(I+K(I)))**partial)
 # >>> 
 # >>> 'join'
 # 'join'
 # >>> _*(K(callmethod)+I)
-# (<function callmethod at 0xb6479618>, 'join')
+# (<function callmethod at 0xb6511a98>, 'join')
 # >>> _**partial
-# Func(callmethod)
+# Func(functools.partial(<function callmethod at 0xb6511a98>, 'join'))
 # >>> _*(I*K+K(I))
-# (Func(const), Func(I))
+# (Func(<function const.<locals>.const at 0xb6526bb8>), Func(<function I at 0xb6511618>))
 # >>> _*FuncRow
-# <console>:1: TypeError: can't multiply sequence by non-int of type 'type'
+# <168>:1: TypeError: can't multiply sequence by non-int of type 'type'
 # >>> (',')*_
-# <console>:1: TypeError: can't multiply sequence by non-int of type 'tuple'
+# <169>:1: TypeError: can't multiply sequence by non-int of type 'tuple'
 # >>> 
 # >>> 
 # >>> 
 # >>> _**apply
-# <console>:1: TypeError: Func object argument after * must be an iterable, not Func
-# /home/pi/python/parle/func.py:21: TypeError: Func object argument after * must be an iterable, not Func
-#     self=apply
-#     left=(Func(const), Func(I))
-# /home/pi/python/parle/func.py:11: TypeError: Func object argument after * must be an iterable, not Func
-#     self=apply
-#     args=(Func(const), Func(I))
+# <173>:1: TypeError: Func object argument after * must be an iterable, not Func
+# /home/pi/python/parle/func.py:20: TypeError: Func object argument after * must be an iterable, not Func
+#   __rpow__(
+#     self=Func(<function apply at 0xb65118a0>)
+#     left=(Func(<function const.<locals>.const at 0xb6526bb8>), Func(<...
+#   )
+# /home/pi/python/parle/func.py:10: TypeError: Func object argument after * must be an iterable, not Func
+#   __call__(self=Func(<function apply at 0xb65118a0>))
+#     args=(Func(<function const.<locals>.const at 0xb6526bb8>), Func(<...
 #     kwargs={}
-# /home/pi/python/parle/func.py:155: TypeError: Func object argument after * must be an iterable, not Func
-#     f=const
-#     l=I
+# /home/pi/python/parle/func.py:151: TypeError: Func object argument after * must be an iterable, not Func
+#   apply(
+#     f=Func(<function const.<locals>.const at 0xb6526bb8>)
+#     l=Func(<function I at 0xb6511618>)
+#   )
 #     kwargs={}
 # >>> 
 # >>> 
 # >>> 
 # >>> (',',)**_
-# <console>:1: TypeError: unsupported operand type(s) for ** or pow(): 'tuple' and 'tuple'
+# <177>:1: TypeError: unsupported operand type(s) for ** or pow(): 'tuple' and 'tuple'
 # >>> 
 # >>> 
 # >>> meth.join(['1','2','3'])(',')
@@ -699,6 +706,12 @@ q=Attr(qstr)
 # >>> [1,2]&p
 # [1, 2]
 # >>> 
+# >>> first(range(10))
+# 0
+# >>> firstn(3,range(10))
+# [0, 1, 2]
+# >>> span(100)*partial(firstn,10)
+# [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 # >>> 
 # >>> 
 # >>> 
