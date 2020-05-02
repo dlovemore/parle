@@ -59,8 +59,12 @@ def trrow(tr):
         if n[TAG]=='tr':
             return ...
 
-def scale(s,t):
+def scale(t,s):
     return [svg,[{TAG:'g', 'transform':f"scale({s})"}, t]]
+
+def translate(t, xy):
+    x,y=xy
+    return [svg,[{TAG:'g', 'transform':f"translate({x},{y})"}, t]]
 
 # >>> from htmldraw import *
 # >>> 
@@ -81,13 +85,16 @@ def scale(s,t):
 ## >>> draw(_)
 # >>> c=[svg['height':200,'width':200], [{TAG:'circle', 'cx':100, 'cy':100, 'r':90, 'stroke':'black', 'fill':'blue','stroke-width':3}]]
 # >>> th(c)
-# '<svg xmlns="http://www.w3.org/2000/svg" top="0" left="0" height="200" width="200"><circle cx="100" cy="100" r="90" stroke="black" fill="blue" stroke-width="3"></circle></svg>'
+# '<svg height="200" width="200" xmlns="http://www.w3.org/2000/svg" top="0" left="0"><circle cx="100" cy="100" r="90" stroke="black" fill="blue" stroke-width="3"></circle></svg>'
 # >>> div=Dict[TAG:'div']
-# >>> scale(2,c)
-# [<class 'func.Lookup'>['': 'svg', 'xmlns': 'http://www.w3.org/2000/svg', 'top': 0, 'left': 0], [{'': 'g', 'transform': 'scale(2)'}, [<class 'func.Lookup'>['': 'svg', 'xmlns': 'http://www.w3.org/2000/svg', 'top': 0, 'left': 0, 'height': 200, 'width': 200], [{'': 'circle', 'cx': 100, 'cy': 100, 'r': 90, 'stroke': 'black', 'fill': 'blue', 'stroke-width': 3}]]]]
-# >>> #show(_)
-# >>> #show(([div,[div,scale(2,c),c,scale(.5,c)],scale(.66,[div,c,c,c,c])]))
-# >>> 
+# >>> scale(c,2)
+# [<class 'func.Lookup'>['': 'svg', 'xmlns': 'http://www.w3.org/2000/svg', 'top': 0, 'left': 0], [{'': 'g', 'transform': 'scale(2)'}, [<class 'func.Lookup'>['height': 200, 'width': 200, '': 'svg', 'xmlns': 'http://www.w3.org/2000/svg', 'top': 0, 'left': 0], [{'': 'circle', 'cx': 100, 'cy': 100, 'r': 90, 'stroke': 'black', 'fill': 'blue', 'stroke-width': 3}]]]]
+# >>> th(_)
+# '<svg xmlns="http://www.w3.org/2000/svg" top="0" left="0"><g transform="scale(2)"><svg height="200" width="200" xmlns="http://www.w3.org/2000/svg" top="0" left="0"><circle cx="100" cy="100" r="90" stroke="black" fill="blue" stroke-width="3"></circle></svg></g></svg>'
+# >>> # draw(_)
+# >>> th(([div,[div,scale(c,2),c,scale(c,.5)],scale([div,c,c,c,c],.66)]))
+# '<div><div><svg xmlns="http://www.w3.org/2000/svg" top="0" left="0"><g transform="scale(2)"><svg height="200" width="200" xmlns="http://www.w3.org/2000/svg" top="0" left="0"><circle cx="100" cy="100" r="90" stroke="black" fill="blue" stroke-width="3"></circle></svg></g></svg><svg height="200" width="200" xmlns="http://www.w3.org/2000/svg" top="0" left="0"><circle cx="100" cy="100" r="90" stroke="black" fill="blue" stroke-width="3"></circle></svg><svg xmlns="http://www.w3.org/2000/svg" top="0" left="0"><g transform="scale(0.5)"><svg height="200" width="200" xmlns="http://www.w3.org/2000/svg" top="0" left="0"><circle cx="100" cy="100" r="90" stroke="black" fill="blue" stroke-width="3"></circle></svg></g></svg></div><svg xmlns="http://www.w3.org/2000/svg" top="0" left="0"><g transform="scale(0.66)"><div><svg height="200" width="200" xmlns="http://www.w3.org/2000/svg" top="0" left="0"><circle cx="100" cy="100" r="90" stroke="black" fill="blue" stroke-width="3"></circle></svg><svg height="200" width="200" xmlns="http://www.w3.org/2000/svg" top="0" left="0"><circle cx="100" cy="100" r="90" stroke="black" fill="blue" stroke-width="3"></circle></svg><svg height="200" width="200" xmlns="http://www.w3.org/2000/svg" top="0" left="0"><circle cx="100" cy="100" r="90" stroke="black" fill="blue" stroke-width="3"></circle></svg><svg height="200" width="200" xmlns="http://www.w3.org/2000/svg" top="0" left="0"><circle cx="100" cy="100" r="90" stroke="black" fill="blue" stroke-width="3"></circle></svg></div></g></svg></div>'
+# >>> # draw(_)
 # >>> 
 # >>> 
 # >>> 
