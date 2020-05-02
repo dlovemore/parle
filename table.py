@@ -1,7 +1,6 @@
 from auto import *
 from bisect import bisect_right
-from func import pairs, aslist, Func, GetItem, I, redparts, unstar, meth, prop, lmap
-from functools import reduce, partial
+from func import pairs, aslist, Func, GetItem, I, redparts, unstar, meth, prop, lmap, partial, reduce
 import htmldraw
 import operator
 
