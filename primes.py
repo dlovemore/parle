@@ -1,13 +1,9 @@
 import collections
 import itertools
-
-def prod(*l):
-    k=1
-    for x in l:
-        k*=x
-    return k
+from func import *
 
 _primes=[2,3]
+@Func
 def primes(n):
     if n>len(_primes):
         for pp in itertools.count(_primes[-1]+2,2):
@@ -17,17 +13,20 @@ def primes(n):
                     break
     return _primes[:n]
 
+@Func
 def prime(n):
     if len(_primes) <=n:
         primes(n)
     return _primes[n-1]
 
+@Func
 def ispalindromic(i):
     s=str(i)
     return s==s[::-1]
 
 
 _pps=[1]
+@Func
 def pp(n):
     if n>len(_pps):
         for pi in itertools.count(_pps[-1]+1):
@@ -38,6 +37,7 @@ def pp(n):
                     break
     return prime(_pps[n-1])
 
+@Func
 def isprime(n):
     for k in range(1,n):
         pk=prime(k)
@@ -47,18 +47,22 @@ def isprime(n):
             break
     return False
 
+@Func
 def isperfect(n):
-    return som(n)==n
+    return sosf(n)==n
 
+@Func
 def issublime(n):
     return isperfect(sof(n)) and isperfect(nof(n))
 
+@Func
 def prod(xs):
     n=1
     for x in xs:
         n*=x
     return n
 
+@Func
 def factors(n):
     fs=[]
     k=n
@@ -74,15 +78,19 @@ def factors(n):
 
 fs=factors
 
+@Func
 def pf(n):
     return collections.Counter(factors(n))
 
+@Func
 def npf(n):
     return [np(p) for p in factors(n)]
 
+@Func
 def npf(n):
     return {p:np(p) for p in factors(n)}
 
+@Func
 def allfactors(n):
     if n in (0,1): return ([],[1])[n]
     pps=pf(n)
@@ -90,6 +98,7 @@ def allfactors(n):
     fs = [prod([p**k for p,k in zip(ps,ks)]) for ks in itertools.product(*(range(0,n+1) for n in ns))]
     return sorted(fs)
 
+@Func
 def sof(n):
     "Sum of factors"
     if n==0: return 0
@@ -98,6 +107,7 @@ def sof(n):
     assert r == sum(allfactors(n))
     return r
 
+@Func
 def nof(n):
     "Number of factors"
     if n==0: return 0
@@ -106,10 +116,12 @@ def nof(n):
     assert r == len(allfactors(n))
     return r
 
-def som(n):
-    "Sum of multiples."
+@Func
+def sosf(n):
+    "Sum of smaller factors."
     return sof(n)-n
 
+@Func
 def lookupas(f,n):
     k=1
     while f(k)<=n:
@@ -127,11 +139,13 @@ def lookupas(f,n):
 
 φ=(1+5**.5)/2
 ψ=1-φ
+@Func
 def Fn(n,f0=0,f1=1):
     return int(((f1-f0*ψ)*φ**n+(f0*φ-f1)*ψ**n)/(φ-ψ)+0.5)
 
 Fibonacci=Fn
 
+@Func
 def base(b,x):
     def digits(x):
         while x:
@@ -139,33 +153,38 @@ def base(b,x):
             x//=b
     return list(digits(x))[::-1]
 
+@Func
 def bases(x):
     for b in range(2,min(41,x)):
         print(b,base(b,x))
 
+@Func
 def rebase(b, x):
     if isinstance(x, int):
         x=[int(d) for d in str(x)]
     return sum([d*b**i for i,d in enumerate(x[::-1])])
 
+@Func
 def fbase(b,x):
     while True:
         yield int(x)
         x-=int(x)
         x*=b
 
+@Func
 def tri(n): return n*(n+1)//2
 
-def np(p): return lookupas(pn,p)
-def npp(p): return lookupas(pp,p)
-def ntri(p): return lookupas(tri,p)
-def nsq(p): return lookupas((lambda x: x*x),p)
-def ncube(p): return lookupas((lambda x: x**3),p)
-def nF(p): return lookupas(Fibonacci, p)
+np=lookupas(prime,...)
+npp=lookupas(pp,...)
+ntri=lookupas(tri,...)
+nsq=lookupas((lambda x: x*x),...)
+ncube=lookupas((lambda x: x*x*x),...)
+nF=lookupas(Fibonacci,...)
 def nsof(p): return [i for i in range(p) if sof(i)==p]
 
-def pn(n):
-    return prime(n)
+pn=prime
+
+
 
 # >>> from primes import *
 # >>> prime(1)
@@ -205,9 +224,9 @@ def pn(n):
 # >>> sof(496)//2
 # 496
 # >>> bonacci(2)
-# <console>:1: NameError: name 'bonacci' is not defined
+# <21>:1: NameError: name 'bonacci' is not defined
 # >>> bonacci(11)
-# <console>:1: NameError: name 'bonacci' is not defined
+# <22>:1: NameError: name 'bonacci' is not defined
 # >>> 
 # >>> sof(66)
 # 144
@@ -376,11 +395,11 @@ def pn(n):
 # >>> Fn(10)
 # 55
 # >>> 
-# >>> som(6)
+# >>> sosf(6)
 # 6
-# >>> som(28)
+# >>> sosf(28)
 # 28
-# >>> som(12)
+# >>> sosf(12)
 # 16
 # >>> sof(12)
 # 28
