@@ -141,7 +141,9 @@ def lookupas(f,n):
 ψ=1-φ
 @Func
 def Fn(n,f0=0,f1=1):
-    return int(((f1-f0*ψ)*φ**n+(f0*φ-f1)*ψ**n)/(φ-ψ)+0.5)
+    for i in range(n):
+        f0,f1=f1,f0+f1
+    return f0
 
 Fibonacci=Fn
 
