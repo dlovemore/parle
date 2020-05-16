@@ -13,10 +13,12 @@ class Func:
     def __rmatmul__(self,left):
         return dmap(self,left)
     def __matmul__(self,right):
+        if isinstance(right, FuncRow): return NotImplemented
         return Fun(right) and compose(self,partial(dmap,right)) or NotImplemented
     def __rmul__(self,left):
         return Fun(left) and compose(left,self) or self(left)
     def __mul__(self,right):
+        if isinstance(right, FuncRow): return NotImplemented
         return Fun(right) and compose(self,right) or NotImplemented
     def __rpow__(self,left):
         return Fun(left) and compose(left, star(self)) or self(*left)
@@ -32,10 +34,11 @@ class Func:
         return Fun(l) and orr(l,self) or NotImplemented
     def __or__(self,r):
         return Fun(r) and orr(self,r) or NotImplemented
-    def __add__(self, other):
-        if isinstance(other, Func):
-            return FuncRow((self,other))
-        return NotImplemented
+    def __add__(self, right):
+        if isinstance(right, Func):
+            return FuncRow((self,right))
+        return Fun(right) and FuncRow((self,right)) or NotImplemented
+    def __pos__(self): return I+self
     def __invert__(self): return compose(self,op.not_)
     def __repr__(self):
         return f'{type(self).__name__}({self.f})'
@@ -57,19 +60,21 @@ class FuncRow(Func):
     def __call__(self, *args,**kwargs):
         return tuple(f(*args,**kwargs) for f in self.fs)
     def __rmul__(self, left):
+        if Fun(left): return compose(left, self)
         return tuple(f(left) for f in self.fs)
     def __radd__(self, left):
         if isinstance(left, FuncRow):
             return FuncRow(left.fs+self.fs)
         if isinstance(left, Func):
             return FuncRow(((left.f,)+self.fs))
-        return NotImplemented
-    def __add__(self, other):
-        if isinstance(other, FuncRow):
-            return FuncRow((self.fs+other.fs))
-        if isinstance(other, Func):
-            return FuncRow((self.fs+(other.f,)))
-        return NotImplemented
+        return Fun(left) and FuncRow((left,)+self.fs) or NotImplemented
+    def __add__(self, right):
+        if isinstance(right, FuncRow):
+            return FuncRow((self.fs+right.fs))
+        if isinstance(right, Func):
+            return FuncRow((self.fs+(right,)))
+        return Fun(right) and FuncRow(self.fs+(Func(right),)) or NotImplemented
+    def __pos__(self): return I+self
     def __repr__(self):
         return f'{type(self).__name__}({self.fs!r})'
 
@@ -215,6 +220,7 @@ e=Unique.e
 @Func
 def span(a,b=None,step=1):
     if isinstance(a,slice): a,b,step=a
+    if isinstance(a,str): return ''.join(map(chr,span(ord(a),ord(b),step)))
     if b is None: a,b=1,a
     return range(1,a+1,step) if b is None else range(a,b+1,step)
 
@@ -307,8 +313,8 @@ add=Binop(operator.add)
 sub=Binop(operator.sub)
 mod=Binop(operator.mod)
 pow=Binop(operator.pow)
-divide=Binop(operator.truediv)
-div=Binop(operator.floordiv)
+truediv=divide=Binop(operator.truediv)
+floordiv=Binop(operator.floordiv)
 mul=Binop(operator.mul)
 
 class Lookup(dict,Func):
@@ -435,11 +441,11 @@ def first(g):
 # >>> from func import *
 # >>> 
 # >>> method.join
-# Func(functools.partial(<function callmethod at 0xb6473db0>, 'join'))
+# Func(functools.partial(<function callmethod at 0xb6497e88>, 'join'))
 # >>> method.join(',','abc')
 # 'a,b,c'
 # >>> meth.startswith('a')
-# Func(<function meth.<locals>.callmeth.<locals>.callmeth at 0xb6503b70>)
+# Func(<function meth.<locals>.callmeth.<locals>.callmeth at 0xb6566bb8>)
 # >>> _('a'),_('b')
 # (True, False)
 # >>> 
@@ -451,7 +457,7 @@ def first(g):
 # >>> ap.abc
 # abc
 # >>> pairs('abcdefg')
-# <generator object windows at 0xb6603f30>
+# <generator object windows at 0xb6666f30>
 # >>> list(_)
 # ['ab', 'bc', 'cd', 'de', 'ef', 'fg']
 # >>> 
@@ -495,7 +501,7 @@ def first(g):
 # >>> star(isinstance)(swap((int, 3)))
 # True
 # >>> partial(compose(unstar(swap),star(isinstance)),int)
-# Func(functools.partial(<function compose.<locals>.compose at 0xb6484b28>, <class 'int'>))
+# Func(functools.partial(<function compose.<locals>.compose at 0xb64a7c00>, <class 'int'>))
 # >>> _(9),_('ab')
 # (True, False)
 # >>> push=(K(I)+l*tuple*K)*FuncRow*
@@ -571,7 +577,7 @@ def first(g):
 # >>> isinstance(o, list) or isinstance(o, tuple) or isinstance(o, FuncRow)
 # False
 # >>> rowtype('abc')
-# Func(<function compose.<locals>.compose at 0xb6484150>)
+# Func(<function compose.<locals>.compose at 0xb64a7228>)
 # >>> rowtype('abc')('def')
 # 'def'
 # >>> 
@@ -598,7 +604,7 @@ def first(g):
 # >>> callable(F)
 # True
 # >>> F(list)@F(map)
-# Func(<function compose.<locals>.compose at 0xb6484b70>)
+# Func(<function compose.<locals>.compose at 0xb64a7c48>)
 # >>> F(list)
 # Func(<class 'list'>)
 # >>> type(_)
@@ -606,7 +612,7 @@ def first(g):
 # >>> (I|l)(1,2,3)
 # [1, 2, 3]
 # >>> Dict['a':'b']|I
-# Func(<function orr.<locals>.orr at 0xb6484b70>)
+# Func(<function orr.<locals>.orr at 0xb64a7c48>)
 # >>> 
 # >>> p(_('c'),_('a'))
 # c b
@@ -637,11 +643,11 @@ def first(g):
 # ['1']
 # >>> 
 # >>> partial(l,0)
-# Func(functools.partial(<function unstar.<locals>.unstar at 0xb6484078>, <class 'list'>, 0))
+# Func(functools.partial(<function unstar.<locals>.unstar at 0xb64a7150>, <class 'list'>, 0))
 # >>> partial(partial(partial(l,0),1),2)
-# Func(functools.partial(<function unstar.<locals>.unstar at 0xb6484078>, <class 'list'>, 0, 1, 2))
+# Func(functools.partial(<function unstar.<locals>.unstar at 0xb64a7150>, <class 'list'>, 0, 1, 2))
 # >>> partial(partial(partial(partial(l,0),1),2),3)
-# Func(functools.partial(<function unstar.<locals>.unstar at 0xb6484078>, <class 'list'>, 0, 1, 2, 3))
+# Func(functools.partial(<function unstar.<locals>.unstar at 0xb64a7150>, <class 'list'>, 0, 1, 2, 3))
 # >>> _.f.args
 # (<class 'list'>, 0, 1, 2, 3)
 # >>> 
@@ -668,57 +674,72 @@ def first(g):
 # >>> type(functools.partial(I))
 # <class 'functools.partial'>
 # >>> I
-# Func(<function I at 0xb6473858>)
+# Func(<function I at 0xb6497930>)
 # >>> _(3)
 # 3
 # >>> K
-# Func(<function const at 0xb64738a0>)
+# Func(<function const at 0xb6497978>)
 # >>> 
 # >>> K(9)
-# Func(<function const.<locals>.const at 0xb6484b28>)
+# Func(<function const.<locals>.const at 0xb64a7c00>)
 # >>> _(9)
 # 9
 # >>> 
 # >>> 
 # >>> I+K(9)
-# FuncRow((Func(<function I at 0xb6473858>), Func(<function const.<locals>.const at 0xb6484b28>)))
+# FuncRow((Func(<function I at 0xb6497930>), Func(<function const.<locals>.const at 0xb64a7c00>)))
 # >>> 3*_,_(4)
 # ((3, 9), (4, 9))
+# >>> 3*+K(9)
+# (3, 9)
+# >>> 'abcdef'*+Func(len)
+# ('abcdef', 6)
+# >>> 
 # >>> 
 # >>> meth.add
-# Func(<function meth.<locals>.callmeth at 0xb6503a98>)
+# Func(<function meth.<locals>.callmeth at 0xb6566c00>)
 # >>> m=Attr(((K(callmethod)+I)**partial*(I+K(I)))**partial)
 # >>> 
 # >>> 'join'
 # 'join'
 # >>> _*(K(callmethod)+I)
-# (<function callmethod at 0xb6473db0>, 'join')
+# (<function callmethod at 0xb6497e88>, 'join')
 # >>> _**partial
-# Func(functools.partial(<function callmethod at 0xb6473db0>, 'join'))
+# Func(functools.partial(<function callmethod at 0xb6497e88>, 'join'))
 # >>> _*(I*K+K(I))
-# (Func(<function const.<locals>.const at 0xb6484f60>), Func(<function I at 0xb6473858>))
+# Func(<function compose.<locals>.compose at 0xb64a7c48>)
 # >>> _*FuncRow
-# <164>:1: TypeError: can't multiply sequence by non-int of type 'type'
+# Func(<function compose.<locals>.compose at 0xb64a7df8>)
 # >>> (',')*_
-# <165>:1: TypeError: can't multiply sequence by non-int of type 'tuple'
+# <168>:1: TypeError: join() takes exactly one argument (0 given)
+# /home/pi/python/parle/func.py:19: TypeError: join() takes exactly one argument (0 given)
+#   __rmul__(
+#     self=Func(<function compose.<locals>.compose at 0xb64a7df8>)
+#     left=,
+#   )
+# /home/pi/python/parle/func.py:12: TypeError: join() takes exactly one argument (0 given)
+#   __call__(self=Func(<function compose.<locals>.compose at 0xb64a7df8...
+#     args=(',',)
+#     kwargs={}
+# /home/pi/python/parle/func.py:154: TypeError: join() takes exactly one argument (0 given)
+#   compose()
+#     args=(',',)
+#     kwargs={}
+#     f=<function compose.<locals>.compose at 0xb64a7c48>
+#     g=<class 'func.FuncRow'>
+# /home/pi/python/parle/func.py:154: TypeError: join() takes exactly one argument (0 given)
+#   compose()
+#     args=(',',)
+#     kwargs={}
+#     f=functools.partial(<function callmethod at 0xb6497e88>, 'join')
+#     g=<bound method FuncRow.__call__ of FuncRow((Func(<function compo...
+# /home/pi/python/parle/func.py:265: TypeError: join() takes exactly one argument (0 given)
+#   callmethod(name=join, object=,)
+#     args=()
+#     kwargs={}
 # >>> 
 # >>> _**apply
-# <167>:1: TypeError: Func object argument after * must be an iterable, not Func
-# /home/pi/python/parle/func.py:22: TypeError: Func object argument after * must be an iterable, not Func
-#   __rpow__(
-#     self=Func(<function apply at 0xb6473ae0>)
-#     left=(Func(<function const.<locals>.const at 0xb6484f60>), Func(<...
-#   )
-# /home/pi/python/parle/func.py:12: TypeError: Func object argument after * must be an iterable, not Func
-#   __call__(self=Func(<function apply at 0xb6473ae0>))
-#     args=(Func(<function const.<locals>.const at 0xb6484f60>), Func(<...
-#     kwargs={}
-# /home/pi/python/parle/func.py:166: TypeError: Func object argument after * must be an iterable, not Func
-#   apply(
-#     f=Func(<function const.<locals>.const at 0xb6484f60>)
-#     l=Func(<function I at 0xb6473858>)
-#   )
-#     kwargs={}
+# Func(<function compose.<locals>.compose at 0xb64a7f18>)
 # >>> 
 # >>> 
 # >>> 
@@ -727,25 +748,25 @@ def first(g):
 # '1,2,3'
 # >>> 
 # >>> (2,(1,2,3))*(X[1]@mul) #*X[0])
-# <174>:1: TypeError: binop() missing 1 required positional argument: 'y'
-# /home/pi/python/parle/func.py:18: TypeError: binop() missing 1 required positional argument: 'y'
+# <177>:1: TypeError: binop() missing 1 required positional argument: 'y'
+# /home/pi/python/parle/func.py:19: TypeError: binop() missing 1 required positional argument: 'y'
 #   __rmul__(
-#     self=Func(<function compose.<locals>.compose at 0xb6503bb8>)
+#     self=Func(<function compose.<locals>.compose at 0xb64a7df8>)
 #     left=(2, (1, 2, 3))
 #   )
 # /home/pi/python/parle/func.py:12: TypeError: binop() missing 1 required positional argument: 'y'
-#   __call__(self=Func(<function compose.<locals>.compose at 0xb6503bb8...
+#   __call__(self=Func(<function compose.<locals>.compose at 0xb64a7df8...
 #     args=((2, (1, 2, 3)),)
 #     kwargs={}
-# /home/pi/python/parle/func.py:149: TypeError: binop() missing 1 required positional argument: 'y'
+# /home/pi/python/parle/func.py:154: TypeError: binop() missing 1 required positional argument: 'y'
 #   compose()
 #     args=((2, (1, 2, 3)),)
 #     kwargs={}
-#     f=<function meth.<locals>.callmeth.<locals>.callmeth at 0xb67427c...
-#     g=functools.partial(<function dmap at 0xb6473270>, Binop(<functio...
-# /home/pi/python/parle/func.py:106: TypeError: binop() missing 1 required positional argument: 'y'
+#     f=<function meth.<locals>.callmeth.<locals>.callmeth at 0xb64a7f1...
+#     g=functools.partial(<function dmap at 0xb6497300>, Binop(<functio...
+# /home/pi/python/parle/func.py:111: TypeError: binop() missing 1 required positional argument: 'y'
 #   dmap(
-#     f=<function Binop.__init__.<locals>.binop at 0xb6484420>
+#     f=<function Binop.__init__.<locals>.binop at 0xb64a74f8>
 #     l=(1, 2, 3)
 #   )
 # >>> 
@@ -774,24 +795,24 @@ def first(g):
 # 'good'
 # >>> 
 # >>> add
-# Binop(<function Binop.__init__.<locals>.binop at 0xb6484270>)
+# Binop(<function Binop.__init__.<locals>.binop at 0xb64a7348>)
 # >>> add(2,2)
 # 4
 # >>> sub(2,3)
 # -1
 # >>> 2*sub
-# LeftOp(functools.partial(<function Binop.__init__.<locals>.binop at 0xb64842b8>, 2))
+# LeftOp(functools.partial(<function Binop.__init__.<locals>.binop at 0xb64a7390>, 2))
 # >>> _(3)
 # -1
 # >>> swap((0,1))
 # (1, 0)
 # >>> 
 # >>> sub*2
-# Func(functools.partial(<function compose.<locals>.compose at 0xb65033d8>, 2))
+# Func(functools.partial(<function compose.<locals>.compose at 0xb64a7e88>, 2))
 # >>> (sub*2)(3)
 # 1
 # >>> sub*2
-# Func(functools.partial(<function compose.<locals>.compose at 0xb6503bb8>, 2))
+# Func(functools.partial(<function compose.<locals>.compose at 0xb64a7f18>, 2))
 # >>> _(3)
 # 1
 # >>> 2*sub*3
@@ -803,7 +824,7 @@ def first(g):
 # >>> (1*sub)@(1,2,3)
 # (0, -1, -2)
 # >>> (1,2,3)@sub
-# LeftOp(<bound method FuncRow.__call__ of FuncRow((Func(functools.partial(<function Binop.__init__.<locals>.binop at 0xb64842b8>, 1)), Func(functools.partial(<function Binop.__init__.<locals>.binop at 0xb64842b8>, 2)), Func(functools.partial(<function Binop.__init__.<locals>.binop at 0xb64842b8>, 3))))>)
+# LeftOp(<bound method FuncRow.__call__ of FuncRow((Func(functools.partial(<function Binop.__init__.<locals>.binop at 0xb64a7390>, 1)), Func(functools.partial(<function Binop.__init__.<locals>.binop at 0xb64a7390>, 2)), Func(functools.partial(<function Binop.__init__.<locals>.binop at 0xb64a7390>, 3))))>)
 # >>> _(1)&p
 # (0, 1, 2)
 # >>> _(2)&p
@@ -821,13 +842,13 @@ def first(g):
 # 10
 # >>> f=sum(1,2,3,...)
 # >>> f
-# Func(functools.partial(<function unstar.<locals>.unstar at 0xb67427c8>, <built-in function sum>, 1, 2, 3))
+# Func(functools.partial(<function unstar.<locals>.unstar at 0xb64a7df8>, <built-in function sum>, 1, 2, 3))
 # >>> f(4)
 # 10
 # >>> f(5)
 # 11
 # >>> f(6,...)
-# Func(functools.partial(<function unstar.<locals>.unstar at 0xb67427c8>, <built-in function sum>, 1, 2, 3, 6))
+# Func(functools.partial(<function unstar.<locals>.unstar at 0xb64a7df8>, <built-in function sum>, 1, 2, 3, 6))
 # >>> _(7)
 # 19
 # >>> from primes import isprime
@@ -849,10 +870,17 @@ def first(g):
 # >>> 
 # >>> 
 # >>> 
-# >>> dir(operator)
-# ['__abs__', '__add__', '__all__', '__and__', '__builtins__', '__cached__', '__concat__', '__contains__', '__delitem__', '__doc__', '__eq__', '__file__', '__floordiv__', '__ge__', '__getitem__', '__gt__', '__iadd__', '__iand__', '__iconcat__', '__ifloordiv__', '__ilshift__', '__imatmul__', '__imod__', '__imul__', '__index__', '__inv__', '__invert__', '__ior__', '__ipow__', '__irshift__', '__isub__', '__itruediv__', '__ixor__', '__le__', '__loader__', '__lshift__', '__lt__', '__matmul__', '__mod__', '__mul__', '__name__', '__ne__', '__neg__', '__not__', '__or__', '__package__', '__pos__', '__pow__', '__rshift__', '__setitem__', '__spec__', '__sub__', '__truediv__', '__xor__', '_abs', 'abs', 'add', 'and_', 'attrgetter', 'concat', 'contains', 'countOf', 'delitem', 'eq', 'floordiv', 'ge', 'getitem', 'gt', 'iadd', 'iand', 'iconcat', 'ifloordiv', 'ilshift', 'imatmul', 'imod', 'imul', 'index', 'indexOf', 'inv', 'invert', 'ior', 'ipow', 'irshift', 'is_', 'is_not', 'isub', 'itemgetter', 'itruediv', 'ixor', 'le', 'length_hint', 'lshift', 'lt', 'matmul', 'methodcaller', 'mod', 'mul', 'ne', 'neg', 'not_', 'or_', 'pos', 'pow', 'rshift', 'setitem', 'sub', 'truediv', 'truth', 'xor']
-# >>> 
 # >>> op.not_
 # Func(<built-in function not_>)
+# >>> 
+# >>> span('a','z')
+# 'abcdefghijklmnopqrstuvwxyz'
+# >>> 
+# >>> 
+# >>> 
+# >>> op.eq(2,...)
+# Func(functools.partial(<built-in function eq>, 2))
+# >>> (2,3)@_
+# (True, False)
 # >>> 
 # >>> 

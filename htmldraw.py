@@ -5,13 +5,21 @@ import webbrowser
 
 TAG=''
 
+def showfile(f):
+    # subprocess.Popen(['open','t.html']).wait()
+    webbrowser.open(f)
+
+def show(x):
+    if isinstance(x,list): return showt(t)
+    showfile(f)
+
 def draw(s):
     with open('t.html','w') as f:
         f.write(s)
     # subprocess.Popen(['open','t.html']).wait()
     webbrowser.open('t.html')
 
-def show(t): draw(th(t))
+def showt(t): draw(th(t))
 
 def escape(x): return html.escape(str(x))
 
