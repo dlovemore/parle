@@ -1,9 +1,10 @@
 from auto import *
 from bisect import bisect_right
-from func import pairs, aslist, Func, GetItem, I, redparts, unstar, meth, prop, lmap, partial, reduce
+from func import pairs, aslist, Func, GetItem, I, redparts, unstar, meth, prop, lmap, partial, reduce, Row, R
 import htmldraw
 import operator
 
+@Func
 def tale(l):
     n=0
     tales=[]
@@ -12,19 +13,21 @@ def tale(l):
         tales.append(n)
     return tales
 
-def table(words,vals):
-    values=[str(v) for v in vals]
-    words =[w.rjust(max(len(w),len(v)),' ') for w,v in zip(words,values)]
-    values=[v.rjust(max(len(v),len(w)),' ') for v,w in zip(values,words)]
-    return words,values
-
 # In unicode Hebrew punctuation is represented by Mark modifiers that are
 # printed with the previous letter. Such strings are therefore short by the
 # number of modifiers. Adding in the number of modifiers to the text width
 # serves to compensate for this in text justification.
 
-def modifierlen(s):
-    return sum([unicodedata.category(c) in {'Mn','Lm'} for c in s])
+@Func
+def strwidth(s):
+     return sum([(unicodedata.category(c) not in {'Mn','Lm'})+(unicodedata.east_asian_width(c) in {'W','F'}) for c in s])
+
+def stralign(w,n,pad=' '):
+    m=max(0,n-strwidth(w))
+    lm=(m+1)//2
+    rm=m//2
+    padding=pad*n
+    return padding[:lm]+w+padding[n-rm:n]
 
 def fill(vv,fillvalue=''):
     vv=list(vv)
@@ -33,48 +36,21 @@ def fill(vv,fillvalue=''):
 
 def justify(vv,align='center'):
     zvv=list(itertools.zip_longest(*(map(str,v) for v in vv), fillvalue=''))
-    maxes=[max((len(w)-modifierlen(w) for w in ws)) for ws in zvv]
-    vvs=[[getattr(w,align)(M+modifierlen(w),' ') for w in ws] for M,ws in zip(maxes,zvv)]
+    maxes=[max((strwidth(w) for w in ws)) for ws in zvv]
+    vvs=[[stralign(w,M,' ') for w in ws] for M,ws in zip(maxes,zvv)]
     return list(zip(*vvs))
 
 def table(*vv):
     vv=justify(vv)
     return vv
 
-@GetItem
-class Row(list):
-    def __matmul__(self, f):
-        return Row(map(f, self))
-    def __mul__(self, f):
-        return f(*self)
-    def __getattr__(self, attr):
-       return self@(getattr(prop, attr))
-    def __rtruediv__(self, f):
-        if callable(f):
-            return reduce(f,self)
-        return self@Func(partial(operator.truediv,f))
-    def __truediv__(self, f):
-        if callable(f):
-            return Row([x for x in self if f(x)])
-        return Row(map(meth.__truediv__(f), self))
-    def __rfloordiv__(self, f):
-        return Row(redparts(f,self))
-    def __str__(self):
-        return ' '.join(map(str,self))
-    def __repr__(self):
-        return ' '.join(map(repr,self))
-        return f'{type(self).__name__}({super().__repr__()})'
-
-R=Row
-
 # >>> from table import *
 # >>> Row([1,2,3])
 # 1 2 3
-# >>> Row[1,2,3]
+# >>> R[1,2,3]
 # 1 2 3
-# >>> Row[1,]
+# >>> R[1,]
 # 1
-# >>> 
 
 class Index:
     def __init__(self, values):
@@ -342,42 +318,42 @@ class Table:
 # 
 # >>> p(_.values())
 # [[1, 2, 3], [4, 5, 6]]
-# >>> 
+# >>> from func import *
 # >>> p(t(add)(200))
-# <65>:1: NameError: name 'add' is not defined
+# 200 201 202
+# 203 204 205
+# 206 207 208
+# 209        
+# 
+# 210 211 212
+# 213 214 215
+# 216 217 218
+# 219        
+# 220 221 222
+# 223 224 225
+# 226 227 228
+# 229        
+# 
+# 230 231 232
+# 233 234 235
+# 236 237 238
+# 239        
+# 
+# 240 241 242
+# 243 244 245
+# 246 247 248
+# 249        
+# 
+# 
 # >>> t
 # Table(range(0, 50),[Index([3,3,3,1,3,3,3,1,3,3,3,1,3,3,3,1,3,3,3,1]), Index([10,20,10,10])])
 # >>> add/t
-# <67>:1: NameError: name 'add' is not defined
+# Func(<function compose.<locals>.compose at 0xb643b660>)
 # >>> p(_)
-# 0 1 2
-# 3 4 5
-# 6 7 8
-# 9    
-# 
-# 10 11 12
-# 13 14 15
-# 16 17 18
-# 19      
-# 20 21 22
-# 23 24 25
-# 26 27 28
-# 29      
-# 
-# 30 31 32
-# 33 34 35
-# 36 37 38
-# 39      
-# 
-# 40 41 42
-# 43 44 45
-# 46 47 48
-# 49      
-# 
-# 
+# Func(<function compose.<locals>.compose at 0xb643b660>)
 # >>> from htmldraw import *
 # >>> th(table(_.values()))
-# '<table><tr><td>range(0, 3)</td><td>range(3, 6)</td><td>range(6, 9)</td><td>range(9, 10)</td></tr><tr><td>range(10, 13)</td><td>range(13, 16)</td><td>range(16, 19)</td><td>range(19, 20)</td><td>range(20, 23)</td><td>range(23, 26)</td><td>range(26, 29)</td><td>range(29, 30)</td></tr><tr><td>range(30, 33)</td><td>range(33, 36)</td><td>range(36, 39)</td><td>range(39, 40)</td></tr><tr><td>range(40, 43)</td><td>range(43, 46)</td><td>range(46, 49)</td><td>range(49, 50)</td></tr></table>'
+# <69>:1: AttributeError: 'Func' object has no attribute 'values'
 # >>> 
 # >>> 
 # >>> 
@@ -406,7 +382,9 @@ class Table:
 # 2 -1 4 -1
 # >>> 
 # >>> operator.add/Row([1,2,3,4,5])
-# 15
+# <89>:1: NameError: name 'qqqreduce' is not defined
+# /home/pi/python/parle/func.py:235: NameError: name 'qqqreduce' is not defined
+#   __rtruediv__(self=1 2 3 4 5, f=<built-in function add>)
 # >>> 1/Row([1,2,3,4,5])
 # 1.0 0.5 0.3333333333333333 0.25 0.2
 # >>> 
@@ -417,11 +395,13 @@ class Table:
 # >>> Func(partial(operator.add,1))(2)
 # 3
 # >>> operator.add/Row(span(10))
-# 55
+# <95>:1: NameError: name 'qqqreduce' is not defined
+# /home/pi/python/parle/func.py:235: NameError: name 'qqqreduce' is not defined
+#   __rtruediv__(self=1 2 3 4 5 6 7 8 9 10, f=<built-in function add>)
 # >>> 
-# >>> Row[12,]
+# >>> Row([12,])
 # 12
-# >>> Row[1,2,3,4,5]
+# >>> Row([1,2,3,4,5])
 # 1 2 3 4 5
 # >>> Row([[1,2]])
 # [1, 2]
@@ -431,24 +411,22 @@ class Table:
 # slice(1, 10, None)
 # >>> 
 # >>> operator.add//Row[1000,1,2,3,4]
-# 1000 1001 1003 1006 1010
+# <104>:1: TypeError: 'type' object is not subscriptable
 # >>> 
-# >>> Row[range(10)]@(Dict[2:3,5:7,4:13]|I)
+# >>> Row(range(10))@(Dict[2:3,5:7,4:13]|I)
 # 0 1 3 3 13 7 6 7 8 9
 # >>> sub=Binop(operator.sub)
 # >>> 
 # >>> Row([100,200,300])
 # 100 200 300
 # >>> 
-# >>> 10@sub@2
-# <112>:1: TypeError: unsupported operand type(s) for @: 'NoneType' and 'int'
 # >>> 
 # >>> star(range)
-# Func(star)
+# Func(<function star.<locals>.star at 0xb62d6df8>)
 # >>> _((1,2))
 # range(1, 2)
 # >>> 
-# >>> Row[1,23]
+# >>> Row([1,23])
 # 1 23
 # >>> Row(span(10))/(lambda x: x%2)
 # 1 3 5 7 9
@@ -456,10 +434,24 @@ class Table:
 # 2 4 6 8 10
 # >>> 
 # >>> add/(Row(span(10))/(lambda x: x%2==0))
-# 30
+# <119>:1: NameError: name 'qqqreduce' is not defined
+# /home/pi/python/parle/func.py:235: NameError: name 'qqqreduce' is not defined
+#   __rtruediv__(
+#     self=2 4 6 8 10
+#     f=Binop(<function Binop.__init__.<locals>.binop at 0xb62bc420>)
+#   )
 # >>> add/(Row(span(10))/(lambda x: x%2))
-# 25
+# <120>:1: NameError: name 'qqqreduce' is not defined
+# /home/pi/python/parle/func.py:235: NameError: name 'qqqreduce' is not defined
+#   __rtruediv__(
+#     self=1 3 5 7 9
+#     f=Binop(<function Binop.__init__.<locals>.binop at 0xb62bc420>)
+#   )
 # >>> 
+# >>> table('じし わかります'.split())
+# ['table', ['tr', ['td', 'じ'], ['td', 'し']], ['tr', ['td', 'わ'], ['td', 'か'], ['td', 'り'], ['td', 'ま'], ['td', 'す']]]
+# >>> unicodedata.east_asian_width('わ')
+# 'W'
 # >>> 
 # >>> 
 # >>> 

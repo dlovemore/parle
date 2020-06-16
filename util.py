@@ -7,7 +7,36 @@ Run=Attr(F(subprocess.run)(...,capture_output=True)*prop.stdout*method.decode)
 runp=Attr(Run*p)
 sh=Attr(F(subprocess.run)(...,shell=True,capture_output=True)*prop.stdout*method.decode*p)
 
+@Func
+@aslist
+def bits(b):
+    while b:
+        n=b&-b
+        yield n
+        b-=n
+
+pi=math.pi
+exp=Func(math.exp)
+ln=Func(math.log)
+log=Func(math.log)
+log2=Func(math.log2)
+log10=Func(math.log10)
+bp=log2*int
+bps=bits@bp
+
+def frac(x):
+    a=1
+    b=0
+
+
+
+
+
 # >>> from parle import *
+# >>> bps(10)
+# [1, 3]
+# >>> 
+# >>> 
 # >>> dr()
 # 'args' 'f' 'g' 'kwargs'
 # >>> dr(partial)

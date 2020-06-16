@@ -137,8 +137,8 @@ def lookupas(f,n):
     if f(j)==n: return j
     return (i,f(i),f(i)-n,n,f(j)-n,f(j),j)
 
-φ=(1+5**.5)/2
-ψ=1-φ
+phi=φ=(1+5**.5)/2
+psi=ψ=1-φ
 @Func
 def Fn(n,f0=0,f1=1):
     for i in range(n):
@@ -174,14 +174,27 @@ def fbase(b,x):
         x*=b
 
 @Func
+def rect(n): return n*(n+1)
+
+@Func
 def tri(n): return n*(n+1)//2
+
+@Func
+def starn(n): return 6*n*(n-1)+1
+
+@Func
+def hexn(n): return n*(2*n-1)
 
 np=lookupas(prime,...)
 npp=lookupas(pp,...)
 ntri=lookupas(tri,...)
+nrect=lookupas(rect,...)
 nsq=lookupas((lambda x: x*x),...)
 ncube=lookupas((lambda x: x*x*x),...)
 nF=lookupas(Fibonacci,...)
+nstar=lookupas(starn,...)
+nhex=lookupas(hexn,...)
+@Func
 def nsof(p): return [i for i in range(p) if sof(i)==p]
 
 pn=prime
@@ -415,4 +428,12 @@ pn=prime
 # False
 # >>> 
 # >>> 
+# >>> nstar(2701)
+# (21, 2521, -180, 2701, 72, 2773, 22)
+# >>> nhex(496)
+# 16
+# >>> nstar(337)
+# 8
+# >>> rect(8)
+# 72
 # >>> 
