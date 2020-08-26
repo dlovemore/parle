@@ -1,5 +1,6 @@
 import collections
 import itertools
+import fractions
 from func import *
 
 _primes=[2,3]
@@ -173,6 +174,18 @@ def fbase(b,x):
         x-=int(x)
         x*=b
 
+fr=Func(fractions.Fraction)
+
+@Func
+def harmm(xs):
+    hs=[fr(1,x) for x in xs]
+    return len(hs)/sum(hs)
+
+hmaf=allfactors*harmm
+
+@Func
+def ishdn(x): return hmaf(x).denominator==1
+
 @Func
 def rect(n): return n*(n+1)
 
@@ -185,6 +198,9 @@ def starn(n): return 6*n*(n-1)+1
 @Func
 def hexn(n): return n*(2*n-1)
 
+@Func
+def pyramidn(n): return n*(n+1)*(2*n+1)//6
+
 np=lookupas(prime,...)
 npp=lookupas(pp,...)
 ntri=lookupas(tri,...)
@@ -194,6 +210,8 @@ ncube=lookupas((lambda x: x*x*x),...)
 nF=lookupas(Fibonacci,...)
 nstar=lookupas(starn,...)
 nhex=lookupas(hexn,...)
+pyr=pyramidn
+npyr=npyramid=lookupas(pyramidn,...)
 @Func
 def nsof(p): return [i for i in range(p) if sof(i)==p]
 
@@ -436,4 +454,20 @@ pn=prime
 # 8
 # >>> rect(8)
 # 72
+# >>> span(20)@pyr
+# 1 5 14 30 55 91 140 204 285 385 506 650 819 1015 1240 1496 1785 2109 2470 2870
+# >>> npyr(55)
+# 5
+# >>> harmm(allfactors(6))
+# Fraction(2, 1)
+# >>> harmm(allfactors(28))
+# Fraction(3, 1)
+# >>> harmm(allfactors(496))
+# Fraction(5, 1)
+# >>> harmm(allfactors(8128))
+# Fraction(7, 1)
+# >>> 
+# >>> 
+# >>> 
+# >>> 
 # >>> 
