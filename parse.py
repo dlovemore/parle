@@ -82,7 +82,10 @@ def group(p):
     def group(xs):
         nonlocal p
         for s,xs in p(xs):
-            yield tuple(s),xs
+            try:
+                yield [tuple((''.join(s),))],xs
+            except TypeError:
+                yield [tuple(s)],xs
     return group
 
 def node(name,p):
