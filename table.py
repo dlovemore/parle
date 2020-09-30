@@ -168,6 +168,18 @@ class Table:
         args = map(str,[self.vs,self.ixs])
         return f'{type(self).__name__}({",".join(args)})'
 
+@Func
+def transpose(x):
+    vv=x.values()
+    m,n=len(vv),len(vv[0])
+    r=[]
+    for j in range(n):
+        r.append([])
+        for i in range(m):
+            r[j].append(vv[i][j])
+    return Table(r)
+
+T=transpose
 
 # >>> from table import *
 # >>> p=print
@@ -348,9 +360,9 @@ class Table:
 # >>> t
 # Table(range(0, 50),[Index([3,3,3,1,3,3,3,1,3,3,3,1,3,3,3,1,3,3,3,1]), Index([10,20,10,10])])
 # >>> add/t
-# Func(<function compose.<locals>.compose at 0xb643b660>)
+# Func(<function compose.<locals>.compose at 0xb6508618>)
 # >>> p(_)
-# Func(<function compose.<locals>.compose at 0xb643b660>)
+# Func(<function compose.<locals>.compose at 0xb6508618>)
 # >>> from htmldraw import *
 # >>> th(table(_.values()))
 # <69>:1: AttributeError: 'Func' object has no attribute 'values'
@@ -382,9 +394,7 @@ class Table:
 # 2 -1 4 -1
 # >>> 
 # >>> operator.add/Row([1,2,3,4,5])
-# <89>:1: NameError: name 'qqqreduce' is not defined
-# /home/pi/python/parle/func.py:235: NameError: name 'qqqreduce' is not defined
-#   __rtruediv__(self=1 2 3 4 5, f=<built-in function add>)
+# 15
 # >>> 1/Row([1,2,3,4,5])
 # 1.0 0.5 0.3333333333333333 0.25 0.2
 # >>> 
@@ -395,9 +405,7 @@ class Table:
 # >>> Func(partial(operator.add,1))(2)
 # 3
 # >>> operator.add/Row(span(10))
-# <95>:1: NameError: name 'qqqreduce' is not defined
-# /home/pi/python/parle/func.py:235: NameError: name 'qqqreduce' is not defined
-#   __rtruediv__(self=1 2 3 4 5 6 7 8 9 10, f=<built-in function add>)
+# 55
 # >>> 
 # >>> Row([12,])
 # 12
@@ -422,7 +430,7 @@ class Table:
 # >>> 
 # >>> 
 # >>> star(range)
-# Func(<function star.<locals>.star at 0xb62d6df8>)
+# Func(<function star.<locals>.star at 0xb62984f8>)
 # >>> _((1,2))
 # range(1, 2)
 # >>> 
@@ -434,19 +442,21 @@ class Table:
 # 2 4 6 8 10
 # >>> 
 # >>> add/(Row(span(10))/(lambda x: x%2==0))
-# <119>:1: NameError: name 'qqqreduce' is not defined
-# /home/pi/python/parle/func.py:235: NameError: name 'qqqreduce' is not defined
-#   __rtruediv__(
-#     self=2 4 6 8 10
-#     f=Binop(<function Binop.__init__.<locals>.binop at 0xb62bc420>)
-#   )
+# 30
 # >>> add/(Row(span(10))/(lambda x: x%2))
-# <120>:1: NameError: name 'qqqreduce' is not defined
-# /home/pi/python/parle/func.py:235: NameError: name 'qqqreduce' is not defined
-#   __rtruediv__(
-#     self=1 3 5 7 9
-#     f=Binop(<function Binop.__init__.<locals>.binop at 0xb62bc420>)
-#   )
+# 25
+# >>> 
+# >>> x=Table([[1,2,3],[4,5,6]])
+# >>> transpose(x)
+# Table([1, 4, 2, 5, 3, 6],[Index([2,2,2])])
+# >>> print(_)
+# 1 4
+# 2 5
+# 3 6
+# 
+# >>> 
+# >>> 
+# >>> 
 # >>> 
 # >>> table('じし わかります'.split())
 # ['table', ['tr', ['td', 'じ'], ['td', 'し']], ['tr', ['td', 'わ'], ['td', 'か'], ['td', 'り'], ['td', 'ま'], ['td', 'す']]]
