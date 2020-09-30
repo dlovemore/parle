@@ -10,8 +10,8 @@ def showfile(f):
     webbrowser.open(f)
 
 def show(x):
-    if isinstance(x,list): return showt(t)
-    showfile(f)
+    if isinstance(x,list): return showt(x)
+    showfile(x)
 
 def draw(s):
     with open('t.html','w') as f:
@@ -38,11 +38,15 @@ def th(t):
 # svg=Dict[TAG:'svg', 'xmlns':"http://www.w3.org/2000/svg", 'top':0, 'width':'100%', 'left':0, 'height':'100%']
 svg=Dict[TAG:'svg', 'xmlns':"http://www.w3.org/2000/svg", 'top':0, 'left':0]
 
-def table(vv):
-    return ['table']+[['tr']+[['td',x] for x in v] for v in vv]
+@Func
+def ttable(vv,**kwargs):
+    d=dict(kwargs)
+    if d: d[TAG]='table'
+    else: d='table'
+    return [d]+[['tr']+[['td',x] for x in v] for v in vv]
 
 def htmltable(vv):
-    return th(table(vv))
+    return th(ttable(vv))
 
 def plain(t):
     if isinstance(t, str) or not isinstance(t, list):
@@ -80,7 +84,7 @@ def translate(t, xy):
 # '<p>fred</p>'
 # >>> th(['table',['tr',['td','one'],['td','1']],['tr',['td','two'],['td','2']],])
 # '<table><tr><td>one</td><td>1</td></tr><tr><td>two</td><td>2</td></tr></table>'
-# >>> table([('one','1'),('two','2')])
+# >>> ttable([('one','1'),('two','2')])
 # ['table', ['tr', ['td', 'one'], ['td', '1']], ['tr', ['td', 'two'], ['td', '2']]]
 # >>> th(_)
 # '<table><tr><td>one</td><td>1</td></tr><tr><td>two</td><td>2</td></tr></table>'
