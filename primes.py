@@ -160,6 +160,7 @@ def base(b,x):
 def bases(x):
     for b in range(2,min(41,x)):
         print(b,base(b,x))
+base12=base(12,...)*(I@str@(Dict['10':'↊','11':'↋']|I)*F(''.join))
 
 @Func
 def rebase(b, x):
@@ -467,7 +468,8 @@ pn=prime
 # >>> harmm(allfactors(8128))
 # Fraction(7, 1)
 # >>> 
-# >>> 
+# >>> base12(135)
+# '↋3'
 # >>> 
 # >>> 
 # >>> 
