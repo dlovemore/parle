@@ -20,7 +20,6 @@ class Func:
                 n+=1
                 args.remove(...)
             ks=(k+n for k in ks)
-            print(ks)
             return partial(permargs(*ks)(self),*args,**kwargs)
         return self.f(*args,**kwargs)
     def __rmatmul__(self,left):
@@ -37,7 +36,12 @@ class Func:
     def __rpow__(self,left):
         return Fun(left) and compose(left, star(self)) or self(*left)
     def __pow__(self,right):
-        return Fun(right) and compose(self,star(right)) or NotImplemented
+        return Fun(right) and compose(self,star(right)) or (
+            isinstance(right,int) and
+                (right>1 and self*self**(right-1)) or
+                (right==1 and self) or
+                (right==0 and I)
+            ) or NotImplemented
     def __truediv__(self, right):
         return Fun(right) and compose(self,partial(filter,right)) or NotImplemented
     def __rtruediv__(self, left):
@@ -245,7 +249,7 @@ class Row(list):
        return self@(getattr(prop, attr))
     def __rtruediv__(self, f):
         if callable(f):
-            return qqqreduce(f,self)
+            return reduce(f,self)
         return self@Func(partial(operator.truediv,f))
     def __truediv__(self, f):
         if callable(f):
@@ -588,7 +592,6 @@ def perm(*ks):
     @Func
     def perm(l):
         nonlocal nks,permuter
-        print(l)
         return type(l)(permuter(l))+l[nks:]
     return perm
 
@@ -638,11 +641,11 @@ def same(l):
 # >>> 
 # >>> 
 # >>> method.join
-# Func(functools.partial(<function callmethod at 0xb6426468>, 'join'))
+# Func(functools.partial(<function callmethod at 0xb63c1468>, 'join'))
 # >>> method.join(',','abc')
 # 'a,b,c'
 # >>> meth.startswith('a')
-# Func(<function meth.<locals>.callmeth.<locals>.callmeth at 0xb6538bb8>)
+# Func(<function meth.<locals>.callmeth.<locals>.callmeth at 0xb64d3bb8>)
 # >>> _('a'),_('b')
 # (True, False)
 # >>> 
@@ -654,7 +657,7 @@ def same(l):
 # >>> ap.abc
 # abc
 # >>> pairs('abcdefg')
-# <generator object windows at 0xb642daf0>
+# <generator object windows at 0xb63c8af0>
 # >>> list(_)
 # ['ab', 'bc', 'cd', 'de', 'ef', 'fg']
 # >>> 
@@ -669,50 +672,38 @@ def same(l):
 # >>> unstar(li(2,1,3))(4,5,6,7)
 # (6, 5, 7)
 # >>> swap((0,1))
-# (0, 1)
 # (1, 0)
 # >>> 
 # >>> (2,3)*swap
-# (2, 3)
 # (3, 2)
 # >>> 
 # >>> (2,3)**F(op.pow)
 # 8
 # >>> (2,3)*swap**F(op.pow)
-# (2, 3)
 # 9
 # >>> 
 # >>> (I**l)((0,1))
 # [0, 1]
 # >>> swapargs(op.truediv)(2,3)
-# (2, 3)
 # 1.5
 # >>> 
 # >>> (1,2,3)*swap
-# (1, 2, 3)
 # (2, 1, 3)
 # >>> 
 # >>> unstar(swap)(2,3)
-# (2, 3)
 # (3, 2)
 # >>> isinstance(*(int, 3)*swap)
-# (<class 'int'>, 3)
 # True
 # >>> (int, 3)*swap**isinstance
-# (<class 'int'>, 3)
 # True
 # >>> (int, 3)*(swap**isinstance)
-# (<class 'int'>, 3)
 # True
 # >>> 
 # >>> star(isinstance)(swap((int, 3)))
-# (<class 'int'>, 3)
 # True
 # >>> partial(compose(unstar(swap),star(isinstance)),int)
-# Func(functools.partial(<function compose.<locals>.compose at 0xb65384b0>, <class 'int'>))
+# Func(functools.partial(<function compose.<locals>.compose at 0xb64d34b0>, <class 'int'>))
 # >>> _(9),_('ab')
-# (<class 'int'>, 9)
-# (<class 'int'>, 'ab')
 # (True, False)
 # >>> 
 # >>> push(3)
@@ -729,28 +720,21 @@ def same(l):
 # >>> 
 # >>> 
 # >>> swap((1,2,3,4))
-# (1, 2, 3, 4)
 # (2, 1, 3, 4)
 # >>> perm(1,0)([1,2,3,4])
-# [1, 2, 3, 4]
 # [2, 1, 3, 4]
 # >>> perm(2)([1,2,3,4])
-# [1, 2, 3, 4]
 # [3, 1, 2, 4]
 # >>> compose(unstar(perm(1,0)),star(l))(1,2,3,4)
-# (1, 2, 3, 4)
 # [2, 1, 3, 4]
 # >>> 
 # >>> 
 # >>> 
 # >>> permargs(2,0,1)(l)(1,2,3,4)
-# (1, 2, 3, 4)
 # [3, 1, 2, 4]
 # >>> permargs(1)(l)(1,2,3,4)
-# (1, 2, 3, 4)
 # [2, 1, 3, 4]
 # >>> permargs(1,0)(l)(1,2,3,4)
-# (1, 2, 3, 4)
 # [2, 1, 3, 4]
 # >>> 
 # >>> 
@@ -758,7 +742,6 @@ def same(l):
 # >>> 
 # >>> 
 # >>> swapargs(l)(1,2,3)
-# (1, 2, 3)
 # [2, 1, 3]
 # >>> Dict[3:4](3)
 # 4
@@ -798,7 +781,7 @@ def same(l):
 # >>> isinstance(o, list) or isinstance(o, tuple) or isinstance(o, FuncRow)
 # False
 # >>> rowtype('abc')
-# Func(<function compose.<locals>.compose at 0xb64268a0>)
+# Func(<function compose.<locals>.compose at 0xb63c18a0>)
 # >>> rowtype('abc')('def')
 # 'def'
 # >>> 
@@ -825,7 +808,7 @@ def same(l):
 # >>> callable(F)
 # True
 # >>> F(list)@F(map)
-# Func(<function compose.<locals>.compose at 0xb6431348>)
+# Func(<function compose.<locals>.compose at 0xb63cc348>)
 # >>> F(list)
 # Func(<class 'list'>)
 # >>> type(_)
@@ -833,7 +816,7 @@ def same(l):
 # >>> (I|l)(1,2,3)
 # [1, 2, 3]
 # >>> Dict['a':'b']|I
-# Func(<function orf.<locals>.orf at 0xb6431348>)
+# Func(<function orf.<locals>.orf at 0xb63cc348>)
 # >>> 
 # >>> p(_('c'),_('a'))
 # c b
@@ -864,11 +847,11 @@ def same(l):
 # ['1']
 # >>> 
 # >>> partial(l,0)
-# Func(functools.partial(<function unstar.<locals>.unstar at 0xb64267c8>, <class 'list'>, 0))
+# Func(functools.partial(<function unstar.<locals>.unstar at 0xb63c17c8>, <class 'list'>, 0))
 # >>> partial(partial(partial(l,0),1),2)
-# Func(functools.partial(<function unstar.<locals>.unstar at 0xb64267c8>, <class 'list'>, 0, 1, 2))
+# Func(functools.partial(<function unstar.<locals>.unstar at 0xb63c17c8>, <class 'list'>, 0, 1, 2))
 # >>> partial(partial(partial(partial(l,0),1),2),3)
-# Func(functools.partial(<function unstar.<locals>.unstar at 0xb64267c8>, <class 'list'>, 0, 1, 2, 3))
+# Func(functools.partial(<function unstar.<locals>.unstar at 0xb63c17c8>, <class 'list'>, 0, 1, 2, 3))
 # >>> _.f.args
 # (<class 'list'>, 0, 1, 2, 3)
 # >>> 
@@ -895,20 +878,20 @@ def same(l):
 # >>> type(functools.partial(I))
 # <class 'functools.partial'>
 # >>> I
-# Ith(<function I at 0xb6433ed0>)
+# Ith(<function I at 0xb63ceed0>)
 # >>> _(3)
 # 3
 # >>> K
-# Func(<function const at 0xb6433f18>)
+# Func(<function const at 0xb63cef18>)
 # >>> 
 # >>> K(9)
-# Func(<function const.<locals>.const at 0xb6431420>)
+# Func(<function const.<locals>.const at 0xb63cc420>)
 # >>> _(9)
 # 9
 # >>> 
 # >>> 
 # >>> I+K(9)
-# FuncRow((Ith(<function I at 0xb6433ed0>), Func(<function const.<locals>.const at 0xb6431420>)))
+# FuncRow((Ith(<function I at 0xb63ceed0>), Func(<function const.<locals>.const at 0xb63cc420>)))
 # >>> 3*_,_(4)
 # (3 9, 4 9)
 # >>> 3*+K(9)
@@ -918,31 +901,41 @@ def same(l):
 # >>> 
 # >>> 
 # >>> meth.add
-# Func(<function meth.<locals>.callmeth at 0xb6431588>)
+# Func(<function meth.<locals>.callmeth at 0xb63cc588>)
 # >>> m=Attr(((K(callmethod)+I)**partial*(I+K(I)))**partial)
 # >>> 
 # >>> method.join(',',...)
-# Func(functools.partial(<function callmethod at 0xb6426468>, 'join', ','))
+# Func(functools.partial(<function callmethod at 0xb63c1468>, 'join', ','))
 # >>> span(10)@F(str)*_
 # '1,2,3,4,5,6,7,8,9,10'
 # >>> 
 # >>> f=method.join(...,['2020','08','26'])
-# <generator object Func.__call__.<locals>.<genexpr> at 0xb642d8b0>
 # >>> f('-')
-# (['2020', '08', '26'], '-')
 # '2020-08-26'
 # >>> f('/')
-# (['2020', '08', '26'], '/')
 # '2020/08/26'
 # >>> meth.join(['1','3','7'])
-# Func(<function meth.<locals>.callmeth.<locals>.callmeth at 0xb6431588>)
+# Func(<function meth.<locals>.callmeth.<locals>.callmeth at 0xb64d34f8>)
 # >>> _(''),_('.')
 # ('137', '1.3.7')
 # >>> 
 # >>> 
 # >>> k
+# <177>:1: NameError: name 'k' is not defined
 # >>> _**apply
-# Func(<function compose.<locals>.compose at 0xb64ff3d8>)
+# <178>:1: TypeError: 'str' object is not callable
+# /home/pi/python/parle/func.py:37: TypeError: 'str' object is not callable
+#   __rpow__(
+#     self=Func(<function apply at 0xb63c1270>)
+#     left=('137', '1.3.7')
+#   )
+# /home/pi/python/parle/func.py:24: TypeError: 'str' object is not callable
+#   __call__(self=Func(<function apply at 0xb63c1270>))
+#     args=('137', '1.3.7')
+#     kwargs={}
+# /home/pi/python/parle/func.py:358: TypeError: 'str' object is not callable
+#   apply(f=137, l=1.3.7)
+#     kwargs={}
 # >>> 
 # >>> 
 # >>> 
@@ -951,7 +944,7 @@ def same(l):
 # '1,2,3'
 # >>> 
 # >>> (2,(1,2,3))*(X[1]@mul) #*X[0])
-# LeftOp(functools.partial(<function Binop.__init__.<locals>.binop at 0xb64ff3d8>, (2, (1, 2, 3))))
+# LeftOp(functools.partial(<function Binop.__init__.<locals>.binop at 0xb64d34f8>, (2, (1, 2, 3))))
 # >>> 
 # >>> 
 # >>> X[3](range(5))
@@ -978,42 +971,36 @@ def same(l):
 # 'good'
 # >>> 
 # >>> add
-# Binop(<function Binop.__init__.<locals>.binop at 0xb63ed9c0>)
+# Binop(<function Binop.__init__.<locals>.binop at 0xb63c19c0>)
 # >>> add(2,2)
 # 4
 # >>> sub(2,3)
 # -1
 # >>> 2*sub
-# LeftOp(functools.partial(<function Binop.__init__.<locals>.binop at 0xb63eda08>, 2))
+# LeftOp(functools.partial(<function Binop.__init__.<locals>.binop at 0xb63c1a08>, 2))
 # >>> _(3)
 # -1
 # >>> swap((0,1))
-# (0, 1)
 # (1, 0)
 # >>> 
 # >>> sub*2
-# Func(functools.partial(<function compose.<locals>.compose at 0xb64ffc90>, 2))
+# Func(functools.partial(<function compose.<locals>.compose at 0xb64d34b0>, 2))
 # >>> (sub*2)(3)
-# (2, 3)
 # 1
 # >>> sub*2
-# Func(functools.partial(<function compose.<locals>.compose at 0xb64ff3d8>, 2))
+# Func(functools.partial(<function compose.<locals>.compose at 0xb64d3420>, 2))
 # >>> _(3)
-# (2, 3)
 # 1
 # >>> 2*sub*3
 # -1
 # >>> (2,3,4)@(sub*1)
-# (1, 2)
-# (1, 3)
-# (1, 4)
 # (1, 2, 3)
 # >>> (1*sub)*2
 # -1
 # >>> (1*sub)@(1,2,3)
 # (0, -1, -2)
 # >>> (1,2,3)@sub
-# LeftOp(<bound method FuncRow.__call__ of FuncRow((Func(functools.partial(<function Binop.__init__.<locals>.binop at 0xb63eda08>, 1)), Func(functools.partial(<function Binop.__init__.<locals>.binop at 0xb63eda08>, 2)), Func(functools.partial(<function Binop.__init__.<locals>.binop at 0xb63eda08>, 3))))>)
+# LeftOp(<bound method FuncRow.__call__ of FuncRow((Func(functools.partial(<function Binop.__init__.<locals>.binop at 0xb63c1a08>, 1)), Func(functools.partial(<function Binop.__init__.<locals>.binop at 0xb63c1a08>, 2)), Func(functools.partial(<function Binop.__init__.<locals>.binop at 0xb63c1a08>, 3))))>)
 # >>> _(1)&p
 # 0 1 2
 # >>> _(2)&p
@@ -1031,22 +1018,19 @@ def same(l):
 # 10
 # >>> f=sum(1,2,3,...)
 # >>> f
-# Func(functools.partial(<function unstar.<locals>.unstar at 0xb673f7c8>, <built-in function sum>, 1, 2, 3))
+# Func(functools.partial(<function unstar.<locals>.unstar at 0xb67137c8>, <built-in function sum>, 1, 2, 3))
 # >>> f(4)
 # 10
 # >>> f(5)
 # 11
 # >>> f(6,...)
-# Func(functools.partial(<function unstar.<locals>.unstar at 0xb673f7c8>, <built-in function sum>, 1, 2, 3, 6))
+# Func(functools.partial(<function unstar.<locals>.unstar at 0xb67137c8>, <built-in function sum>, 1, 2, 3, 6))
 # >>> _(7)
 # 19
 # >>> perm(1)([1,2,3,4])
-# [1, 2, 3, 4]
 # [2, 1, 3, 4]
 # >>> hex=Func(int)(...,16)
-# <generator object Func.__call__.<locals>.<genexpr> at 0xb65ea870>
 # >>> hex('be')
-# (16, 'be')
 # 190
 # >>> rsorted=Func(sorted)(...,reverse=True)
 # >>> rsorted([3,4,1,2])
@@ -1092,14 +1076,12 @@ def same(l):
 # >>> 'abc'*(len*sub)*1
 # 2
 # >>> 'abc'*((len*sub)*1)
-# (1, 'abc')
 # 2
 # >>> 
 # >>> ord=F(ord)
 # >>> 'a'*ord*mod*9
 # 7
 # >>> 'a'*(ord*mod*9)
-# (9, 'a')
 # 7
 # >>> 
 # >>> li(2,4)((1,2,3,4,5))
@@ -1113,3 +1095,14 @@ def same(l):
 # True
 # >>> same((0,0,0))
 # True
+# >>> 1*(add*3)
+# 4
+# >>> 1*(add*3)**2
+# 7
+# >>> 1*(add*3)**0
+# 1
+# >>> 1*(add*3)**-1
+# <282>:1: TypeError: unsupported operand type(s) for ** or pow(): 'Func' and 'int'
+# >>> 
+# >>> 
+# >>> 
