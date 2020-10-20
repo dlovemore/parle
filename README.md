@@ -76,8 +76,9 @@ optimised.
 - Complexity when working over a data structure can be better than working
 element at a time.
 
-- To gain these benefits we need a sufficently clean expression of what
-  we are doing to allow higher order optimisation
+To gain these benefits we need a sufficently clean expression of what
+we are doing to allow higher order optimisation. The purpose of this
+project is to experiment with program expression.
 
 This is an unsupported prototype project and is subject to error and
 discontinuation.
