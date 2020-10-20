@@ -66,6 +66,8 @@ Why?
 - When we work on collections rather than individual elements we are
 optimising over loops.
 
+- Code can be vectorised
+
 - Code can be parallelised
 
 - Code can be specialised for the data and code being optimised.
@@ -82,3 +84,59 @@ project is to experiment with program expression.
 
 This is an unsupported prototype project and is subject to error and
 discontinuation.
+
+Algorithm optimisation
+
+Suppose we write a program to count the number of lines in a file.
+
+The code to do this is something like:
+
+    >>> len(File('README.md').lines)
+    111
+
+Because of the way Python is executed, those lines are actually going to
+be read and contructed as strings even though we only desire to know the
+total length of the constructed array.
+
+As A function this can be written:
+
+    >>> wc=File*prop.lines*len
+    >>> 'README.md'*wc
+    111
+
+A "more efficient" program is:
+
+    >>> Path('README.md').read_bytes()/(eq*10)*F(len)
+    111
+
+Which can be written as a function:
+
+    >>> wc1=Path*method.read_bytes/(eq*10)*len
+    >>> wc1('README.md')
+    111
+
+If we can transform one into the other then we get a performance gain
+without writing a "more efficient" program. This is because we are
+instructing the computer what to calculate not how to calculate it.
+
+The easiness with which this is done depends on the cleanliness of the
+semantics of the program. And the cleaner the semantics and the less
+dependent on architecture specifics the more the compiler is able to
+recognise what is going on and do it efficiently.
+
+Consider a C program to do the task:
+
+    { int n; for(n=0;(c=fgetc(fp))!=EOF; n+=c=='\n');
+
+This does the task, but not in the *most* efficient way.
+
+For example it reads characters one at a time, yet an optimized array
+search can be both vectorised and parallelised.
+
+Systems like APL, kdb, perform these array operations in highly
+optimised ways. But APLs high level data structures are geared toward
+matrices.
+
+One point of interest is can we also express programs on more general
+graphs in terms of bulk operations that can be specialised, vectorised,
+parallelised.
